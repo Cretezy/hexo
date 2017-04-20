@@ -26,7 +26,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v1.0.0</h2>
+                    <h2>Welcome to Hexo v1.0.2</h2>
                 </div>
                 <audio
                     ref={(player) => {
