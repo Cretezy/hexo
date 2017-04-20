@@ -5,6 +5,9 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_324b2bafa882_key -iv $encrypted_324b2bafa882_iv
   -in deploy_rsa.enc -out deploy_rsa -d
 
+addons:
+  ssh_known_hosts: hexo.craftthatblock.com
+
 deploy:
   provider: script
   skip_cleanup: true
