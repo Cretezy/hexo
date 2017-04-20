@@ -4,6 +4,8 @@ const nodeshout = require("nodeshout");
 const fs = require("fs");
 const youtubedl = require('youtube-dl');
 const ffmpeg = require('fluent-ffmpeg');
+const express = require("express");
+const path = require("path");
 
 // Source types
 const LOCAL = 0;
@@ -30,6 +32,7 @@ if (shout.open() !== 0) {
 
 
 function stream(source, callback) {
+    console.log('Starting to play', source.path);
     switch (source.type) {
         case  LOCAL:
             // const fileStream = new nodeshout.FileReadStream(source.path, 4096 * 8);
@@ -89,6 +92,7 @@ function stream(source, callback) {
             });
             break;
         case YOUTUBE:
+            console.log("Starting yt")
             const video = youtubedl(source.path, ['--format=171'], {cwd: __dirname});
             const shoutStream = new nodeshout.ShoutStream(shout);
 
@@ -100,7 +104,7 @@ function stream(source, callback) {
             ffmpeg(video)
                 .audioCodec('libmp3lame')
                 .format('mp3')
-                .writeToStream(shoutStream);
+                .writeToStream(shoutStream, {end: true});
             break;
     }
 }
@@ -141,3 +145,17 @@ function playRandomSong() {
 }
 
 playRandomSong();
+
+if (process.env.NODE_ENV === 'production') {
+    const app = express();
+
+    app.use(express.static(path.resolve(__dirname, '..', 'web', 'build')));
+
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, '..', 'web', 'build', 'index.html'));
+    });
+
+    app.listen(process.env.PORT || 9000, function () {
+        console.log(`Hexo started`);
+    });
+}
