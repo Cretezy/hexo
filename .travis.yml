@@ -13,4 +13,9 @@ deploy:
     branch: master
 
 script:
-- (cd web && yarn build)
+- (cd web && npm build)
+
+cache:
+  directories:
+    - server/node_modules
+    - web/node_modules
