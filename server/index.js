@@ -112,7 +112,7 @@ function stream(source, callback) {
 const songs = [
     {path: "./dope.mp3", type: LOCAL},
     {path: "./dopeee.mp3", type: LOCAL},
-    {path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: YOUTUBE}
+//    {path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: YOUTUBE}
 ];
 
 let lastSong = -1;
