@@ -6,10 +6,8 @@ const youtubedl = require('youtube-dl');
 const ffmpeg = require('fluent-ffmpeg');
 const express = require("express");
 const path = require("path");
+const songs = require('./songs');
 
-// Source types
-const LOCAL = 0;
-const YOUTUBE = 1;
 
 // Setup nodeshout
 nodeshout.init();
@@ -32,24 +30,24 @@ if (shout.open() !== 0) {
 
 
 function stream(source, callback) {
-    console.log('Starting to play', source.path);
+    console.log('Starting to play', source.name, source.path);
     switch (source.type) {
-        case  LOCAL:
+        case  songs.types.LOCAL:
             // const fileStream = new nodeshout.FileReadStream(source.path, 4096 * 8);
             // const shoutStream = fileStream.pipe(new nodeshout.ShoutStream(shout));
             //
-            // shoutStream.on('finish', function () {
+            // shoutStream.on('finish', () => {
             //     console.log('Finished playing', source.path);
             //     callback()
             // });
 
-            fs.open(source.path, 'r', function (error, fd) {
+            fs.open(source.path, 'r', (error, fd) => {
                 if (error) {
                     console.log(error.message);
                     return;
                 }
 
-                fs.fstat(fd, function (error, stats) {
+                fs.fstat(fd, (error, stats) => {
                     if (error) {
                         console.log(error.message);
                         return;
@@ -68,7 +66,7 @@ function stream(source, callback) {
                             chunkSize = (fileSize - bytesRead);
                         }
 
-                        fs.read(fd, buffer, 0, chunkSize, bytesRead, function (error, bytesRead_, buffer) {
+                        fs.read(fd, buffer, 0, chunkSize, bytesRead, (error, bytesRead_, buffer) => {
                             if (error) {
                                 console.log(error);
                                 return;
@@ -91,12 +89,11 @@ function stream(source, callback) {
                 });
             });
             break;
-        case YOUTUBE:
-            console.log("Starting yt")
+        case songs.types.YOUTUBE:
             const video = youtubedl(source.path, ['--format=171'], {cwd: __dirname});
             const shoutStream = new nodeshout.ShoutStream(shout);
 
-            shoutStream.on('finish', function () {
+            shoutStream.on('finish', () => {
                 console.log('Finished playing', source.path);
                 callback();
             });
@@ -109,53 +106,37 @@ function stream(source, callback) {
     }
 }
 
-const songs = [
-    {path: "./dope.mp3", type: LOCAL},
-    {path: "./dopeee.mp3", type: LOCAL},
-//    {path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: YOUTUBE}
-];
 
-let lastSong = -1;
 
-function playRandomSong() {
+
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const update = require('./socket')(io, songs);
+
+function playSongs() {
     // Doesn't play same song twice
+    const nextSong=songs.getNextSong();
+    update();
 
-    let nextSong;
-    if (lastSong === -1) {
-        const index = Math.floor(Math.random() * songs.length);
-        lastSong = index;
-        nextSong = songs[index]
-    } else {
-        const index = Math.floor(Math.random() * (songs.length - 1));
-        const nextSongs = songs.filter(function (song, songIndex) {
-            return songIndex !== lastSong;
-        });
-        nextSong = nextSongs[index];
-        songs.find(function (song, index) {
-            if (JSON.stringify(nextSong) === JSON.stringify(song)) {
-                lastSong = index;
-                return true;
-            } else {
-                return false;
-            }
-        })
-    }
-
-    stream(nextSong, playRandomSong);
+    stream(nextSong, playSongs);
 }
 
-playRandomSong();
+playSongs();
 
+
+// Only serve build in production
 if (process.env.NODE_ENV === 'production') {
-    const app = express();
-
     app.use(express.static(path.resolve(__dirname, '..', 'web', 'build')));
 
     app.get('*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '..', 'web', 'build', 'index.html'));
     });
-
-    app.listen(process.env.PORT || 9000, function () {
-        console.log(`Hexo started`);
-    });
 }
+
+server.listen(process.env.PORT || 9000, () => {
+    console.log('Hexo started');
+});
+
+
+

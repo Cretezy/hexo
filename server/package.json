@@ -7,6 +7,7 @@
     "express": "^4.15.2",
     "fluent-ffmpeg": "^2.1.0",
     "nodeshout": "^0.1.1",
+    "socket.io": "^1.7.3",
     "youtube-dl": "^1.11.1"
   },
   "scripts": {
