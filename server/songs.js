@@ -82,7 +82,11 @@ module.exports = (state) => {
                     }
                 };
             case types.YOUTUBE:
-                const video = youtubedl(source.path, ['-x', '--audio-format', 'mp3'], {cwd: __dirname});
+                const video = youtubedl(source.path, [
+                    '-x',
+                    '--audio-format', 'mp3',
+                    '--proxy', '201.16.140.205:80'
+                ], {cwd: __dirname});
                 const shoutStream = new nodeshout.ShoutStream(state.shout);
 
                 shoutStream.on('end', () => {
@@ -90,18 +94,18 @@ module.exports = (state) => {
                 });
 
                 const transcode = ffmpeg(video);
-                setTimeout(()=>{
-                    transcode.audioCodec('libmp3lame')
-                        .format('mp3')
-                        .on('end', function () {
-                            console.log('Finished playing', source.path);
-                            callback();
-                        })
-                        .on('error', () => {
-                            // Killed
-                        })
-                        .writeToStream(shoutStream, {end: true});
-                }, 1);
+                // setTimeout(()=>{
+                transcode.audioCodec('libmp3lame')
+                    .format('mp3')
+                    .on('end', function () {
+                        console.log('Finished playing', source.path);
+                        callback();
+                    })
+                    .on('error', () => {
+                        // Killed
+                    })
+                    .writeToStream(shoutStream, {end: true});
+                // }, 1);
                 return {
                     source,
                     stop: () => {
@@ -113,10 +117,10 @@ module.exports = (state) => {
 
 
     const songs = [
-        // {name: "wHere dA blOW", path: "./songs/skimask-wheredablow.mp3", type: songs.types.LOCAL},
-        // {name: "lOok aT meEEE", path: "./songs/xxxtentacion-lookatme.mp3", type: songs.types.LOCAL},
+        // {name: "wHere dA blOW", path: "./songs/skimask-wheredablow.mp3", type: types.LOCAL},
+        // {name: "lOok aT meEEE", path: "./songs/xxxtentacion-lookatme.mp3", type: types.LOCAL},
         // {name: "sidEeAlkS", path: "./songs/theweeknd-sidewalks.mp3", type: songs.types.LOCAL},
-        // {name: "heartlessss", path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: types.YOUTUBE},
+        {name: "heartlessss", path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: types.YOUTUBE},
         {name: "blooowww", path: "https://www.youtube.com/watch?v=Aq81qz-iA-o", type: types.YOUTUBE},
         {name: "look at mee", path: "https://www.youtube.com/watch?v=Wmjpp0_6kb0", type: types.YOUTUBE},
     ];

@@ -6,8 +6,10 @@
     "dotenv": "^4.0.0",
     "express": "^4.15.2",
     "fluent-ffmpeg": "^2.1.0",
+    "lame": "^1.2.4",
     "nodeshout": "^0.1.1",
     "socket.io": "^1.7.3",
+    "throttle": "^1.0.3",
     "youtube-dl": "^1.11.1"
   },
   "scripts": {

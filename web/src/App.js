@@ -21,14 +21,15 @@ class App extends Component {
             futureSongs: null,
             currentSong: null,
             muted: false,
-            stopped: false,
+            stopped: true,
         }
     }
 
     toggleStop() {
         if (this.state.stopped) {
             // start
-            this.player.load()
+            this.player.load();
+            this.player.play();
         } else {
             // stop
             this.player.pause()
@@ -71,19 +72,19 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v2.0.0</h2>
+                    <h2>Welcome to Hexo v2.0.1</h2>
                 </div>
 
                 <audio
                     ref={(player) => {
                         this.player = player;
                     }}
-                    autoPlay src={ICECAST}/>
+                    src={ICECAST}/>
 
                 <input className="volume" type="range"
                        onChange={this.setVolume.bind(this)}
                        value={this.state.volume}
-                       min="0" max="1" step="0.01"/>
+                       min="0" max="1" step="0.005"/>
 
                 <br/>
                 <br/>
