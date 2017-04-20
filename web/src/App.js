@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
 import './App.css';
 import socket from 'socket.io-client';
+import {HOST, ICECAST} from "./hosts";
 
 class App extends Component {
     constructor() {
         super();
-        this.socket = socket(`http://${process.env.REACT_APP_HOST || "localhost:9000"}`);
+        this.socket = socket(HOST);
 
         this.socket.on('songList', (futureSongs) => {
             this.setState({futureSongs});
@@ -20,13 +21,30 @@ class App extends Component {
             futureSongs: null,
             currentSong: null,
             muted: false,
+            stopped: false,
         }
+    }
+
+    toggleStop() {
+        if (this.state.stopped) {
+            // start
+            this.player.load()
+        } else {
+            // stop
+            this.player.pause()
+        }
+
+        this.setState((prevState) => ({stopped: !prevState.stopped}));
     }
 
     setVolume(event) {
         const volume = event.target.value;
         this.setState({volume}, this.refreshVolume);
         localStorage.setItem('volume', volume);
+    }
+
+    skip() {
+        this.socket.emit('skip');
     }
 
     refreshVolume() {
@@ -55,11 +73,13 @@ class App extends Component {
                 <div className="App-header">
                     <h2>Welcome to Hexo v1.1.0</h2>
                 </div>
+
                 <audio
                     ref={(player) => {
                         this.player = player;
                     }}
-                    autoPlay src={process.env.REACT_APP_ICECAST || "http://localhost:8000/hexo"}/>
+                    autoPlay src={ICECAST}/>
+
                 <input className="volume" type="range"
                        onChange={this.setVolume.bind(this)}
                        value={this.state.volume}
@@ -69,9 +89,10 @@ class App extends Component {
                 <br/>
                 <br/>
 
-                <button onClick={this.reloadAudio.bind(this)}>Refresh audio</button>
-                <button onClick={this.toggleMute.bind(this)}>Toggle mute</button>
-
+                <button onClick={this.reloadAudio.bind(this)} disabled={this.state.stopped}>Refresh audio</button>
+                <button onClick={this.toggleMute.bind(this)}>Toggle mute ({this.state.muted ? "on" : "off"})</button>
+                <button onClick={this.toggleStop.bind(this)}>{this.state.stopped ? "Start" : "Stop"} audio</button>
+                <button onClick={this.skip.bind(this)}>Skip</button>
                 <br/>
                 <br/>
                 <hr/>

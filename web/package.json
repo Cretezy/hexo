@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "REACT_APP_HOST='https://hexo.craftthatblock.com' REACT_APP_ICECAST_HOST='https://hexo.craftthatblock.com/music' react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   }

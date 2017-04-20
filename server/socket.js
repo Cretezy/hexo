@@ -1,16 +1,25 @@
-module.exports = (io, songs) => {
+module.exports = (state) => {
+    const {io, events} = state;
     io.on('connection', (client) => {
-        client.emit('currentSong', songs.songs[songs.lastSong]);
-        client.emit('songList', songs.getFutureSongs());
+        sendCurrent(client);
 
         client.on('vote', (data) => {
         });
+
+        client.on('skip', () => {
+            state.songsManager.playNextSong();
+        });
+
         client.on('disconnect', () => {
         });
     });
 
-    return () => {
-        io.emit('currentSong', songs.songs[songs.lastSong]);
-        io.emit('songList', songs.getFutureSongs());
+    events.on("play", () => {
+        sendCurrent(io);
+    });
+
+    function sendCurrent(client) {
+        client.emit('currentSong', state.current.source);
+        client.emit('songList', state.songsManager.getFutureSongs());
     }
 };
