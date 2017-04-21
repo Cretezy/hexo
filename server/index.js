@@ -36,7 +36,7 @@ const state = {
     app,
     events: new EventEmitter(),
 };
-state.youtube=google.youtube({
+state.youtube = google.youtube({
     version: 'v3',
     auth: process.env.YOUTUBE_API
 });
@@ -47,9 +47,7 @@ let server;
 if (process.env.NODE_ENV === 'production') {
     const proxy = httpProxy.createProxyServer({});
 
-    app.get('/music', function (req, res) {
-        // You can define here your custom logic to handle the request
-        // and then proxy the request.
+    app.get('/music', (req, res) => {
         proxy.web(req, res, {
             target: 'http://127.0.0.1:8001/hexo',
             ignorePath: true,
@@ -70,12 +68,7 @@ if (process.env.NODE_ENV === 'production') {
         app,
         debug: true
     }).listen(80, 443);
-
-    // .then(() => {
-    // console.log('Hexo started');
-    // });
 } else {
-
     server = require('http').createServer(app);
 
     server.listen(process.env.PORT || 9000, () => {

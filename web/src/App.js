@@ -49,8 +49,7 @@ class App extends Component {
     toggleStop() {
         if (this.state.stopped) {
             // start
-            this.player.load();
-            this.player.play();
+            this.reloadAudio()
         } else {
             // stop
             this.player.pause()
@@ -83,6 +82,7 @@ class App extends Component {
 
     reloadAudio() {
         this.player.load();
+        this.player.play();
     }
 
     toggleMute() {
@@ -128,7 +128,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v3.2.0</h2>
+                    <h2>Welcome to Hexo v3.2.1</h2>
                 </div>
 
                 <audio

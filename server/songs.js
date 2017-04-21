@@ -113,7 +113,7 @@ module.exports = (state) => {
                     .format('mp3')
                     .on('end', function () {
                         // Called when finish (early)
-                        console.log('Finished TRANSCODE playing', source.name, source.path);
+                        console.log('Finished transcoding', source.name, source.path);
                         callback();
                     })
                     .on('error', () => {
