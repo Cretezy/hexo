@@ -33,6 +33,21 @@
     outline:0;
 }
 
+.vote {
+    border: none;
+    color: white;
+    background-color: #222222;
+    padding: 10px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 32px;
+    margin: 5px;
+    transition: all 0.3s ease;
+    outline:0;
+}
+
 .button:hover {
     color: #fafafa;
 }

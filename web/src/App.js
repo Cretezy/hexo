@@ -18,6 +18,15 @@ class App extends Component {
             document.title = "Hexo | " + currentSong.name;
         });
 
+        this.socket.on('chat', (chat) => {
+            this.setState((prevState) => ({messages: prevState.messages.concat(chat)}));
+        });
+
+        const name = localStorage.getItem("name") || "";
+        if (name !== "") {
+            this.socket.emit("setName", name);
+        }
+
         this.state = {
             volume: parseFloat(localStorage.getItem("volume")) || 0.75,
             futureSongs: null,
@@ -25,6 +34,10 @@ class App extends Component {
             muted: false,
             stopped: true,
             songInput: "",
+            chatInput: "",
+            nameInput: "",
+            name,
+            messages: []
         }
     }
 
@@ -71,8 +84,12 @@ class App extends Component {
         this.setState((prevState) => ({muted: !prevState.muted}), this.refreshVolume);
     }
 
-    changeSongInput(event) {
-        this.setState({songInput: event.target.value});
+    changeInput(input) {
+        return (event) => {
+            const state = {};
+            state[input] = event.target.value;
+            this.setState(state);
+        }
     }
 
     addSong(event) {
@@ -87,11 +104,26 @@ class App extends Component {
         }
     }
 
+    setName(event) {
+        event.preventDefault();
+        const name = this.state.nameInput;
+        this.socket.emit("setName", name);
+        this.setState({nameInput: "", name});
+        localStorage.setItem('name', name);
+
+    }
+
+    sendChat(event) {
+        event.preventDefault();
+        this.socket.emit("chat", this.state.chatInput);
+        this.setState({chatInput: ""});
+    }
+
     render() {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v2.0.3</h2>
+                    <h2>Welcome to Hexo v3.1.0</h2>
                 </div>
 
                 <audio
@@ -135,16 +167,33 @@ class App extends Component {
                 <br/>
 
                 {this.state.currentSong &&
-                <h2>Currently playing: {this.state.currentSong.name}</h2>}
+                <h2>Currently playing: {this.state.currentSong.title}</h2>}
 
                 {this.state.futureSongs
                     ? <SongList songs={this.state.futureSongs} onVote={this.onVote.bind(this)}/>
                     : <div>Loading future songs...</div>}
 
-                <form onSubmit={this.addSong.bind(this)}>
-                    <input value={this.state.songInput} onChange={this.changeSongInput.bind(this)}/>
-                    <input type="submit" value="Add song"/>
-                </form>
+
+                {this.state.name !== "" ?
+                    <div>
+                        <form onSubmit={this.addSong.bind(this)}>
+                            <input value={this.state.songInput} onChange={this.changeInput("songInput").bind(this)}/>
+                            <input type="submit" value="Add song"/>
+                        </form>
+                        <hr/>
+                        <form onSubmit={this.sendChat.bind(this)}>
+                            <input value={this.state.chatInput} onChange={this.changeInput("chatInput").bind(this)}/>
+                            <input type="submit" value="Send"/>
+                        </form>
+                    </div>
+                    :
+                    <form onSubmit={this.setName.bind(this)}>
+                        <input value={this.state.nameInput} onChange={this.changeInput("nameInput").bind(this)}/>
+                        <input type="submit" value="Set name"/>
+                    </form>
+                }
+
+                <ChatList messages={this.state.messages}/>
             </div>
         );
     }
@@ -168,8 +217,33 @@ function SongList({songs, onVote}) {
 function Song({song, onVote}) {
     return (
         <div>
-            <button onClick={onVote(song.uuid)}>Votes ({song.votes})</button>
-            {song.name}</div>
+            <button className="vote" onClick={onVote(song.uuid)}>Votes ({song.votes})</button>
+            <strong>{song.by}</strong> - {song.title}
+        </div>
+    );
+}
+
+
+function ChatList({messages}) {
+    // Sort by time (new up)
+    messages.sort(function (a, b) {
+        return (a.time < b.time) ? 1 : ((b.time < a.time) ? -1 : 0);
+    });
+
+    return (
+        <div>
+            <h3>Chat</h3>
+            {messages.map(
+                (message) => <Message key={message.uuid} message={message}/>
+            )}
+        </div>
+    );
+}
+function Message({message}) {
+    return (
+        <div>
+            <strong>{message.name}</strong>: {message.text}
+        </div>
     );
 }
 

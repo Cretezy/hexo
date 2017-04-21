@@ -10,8 +10,15 @@ module.exports = (state) => {
         YOUTUBE: 1
     };
 
-    function stream(source, callback) {
+    function stream(source, callback_) {
         console.log('Starting to play', source.name, source.path);
+        let called = false;
+        const callback = () =>{
+            if(!called){
+                called = true;
+                callback_();
+            }
+        };
         switch (source.type) {
             case  state.types.LOCAL:
                 // const fileStream = new nodeshout.FileReadStream(source.path, 4096 * 8);
@@ -91,28 +98,39 @@ module.exports = (state) => {
                 const shoutStream = new nodeshout.ShoutStream(state.shout);
 
                 shoutStream.on('end', () => {
-
+                    // Not called?
+                    console.log('End playing', source.name, source.path);
+                    // callback();
+                });
+                shoutStream.on('finish', () => {
+                    // Called when skipped (late) and finish (late)
+                    console.log('Finished playing', source.name, source.path);
+                    // callback();
                 });
 
                 const transcode = ffmpeg(video);
-                // setTimeout(()=>{
                 transcode.audioCodec('libmp3lame')
                     .format('mp3')
                     .on('end', function () {
-                        console.log('Finished playing', source.path);
+                        // Called when finish (early)
+                        console.log('Finished TRANSCODE playing', source.name, source.path);
                         callback();
                     })
                     .on('error', () => {
-                        // Killed
+                        // Called when skipped
+                        console.log('Skipped playing', source.name, source.path);
+                        callback();
                     })
                     .writeToStream(shoutStream, {end: true});
-                // }, 1);
                 return {
                     source,
                     stop: () => {
+                        // called = true;
+                        // shoutStream.emit('end')
                         transcode.kill();
                     }
                 }
+
         }
     }
 
@@ -123,7 +141,7 @@ module.exports = (state) => {
         // {name: "sidEeAlkS", path: "./songs/theweeknd-sidewalks.mp3", type: songs.state.types.LOCAL},
         {path: "https://www.youtube.com/watch?v=Wmjpp0_6kb0", type: state.types.YOUTUBE},
         {path: "https://www.youtube.com/watch?v=Aq81qz-iA-o", type: state.types.YOUTUBE},
-        {path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: state.types.YOUTUBE},
+        // {path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: state.types.YOUTUBE},
     ];
 
     state.current = null;
@@ -134,24 +152,27 @@ module.exports = (state) => {
     state.songsManager.addToQueue = (song) => {
         song.votes = 0;
         song.uuid = uuid();
+        const index = state.queue.length
         state.queue.push(song);
         state.youtube.videos.list({
             id: youtube_parser(song.path),
             part: 'snippet',
         }, function (err, data, response) {
-            if (err || response.statusCode !== 200) {
-                console.error('Error yt: ' + err);
+            if (err || response.statusCode !== 200 || data.items.length === 0) {
+                // ehh something wrong, delete
+                delete state.queue[index];
             } else {
-                song.name = data.items[0].snippet.title;
-                state.events.emit("updateSongList");
+                song.title = data.items[0].snippet.title;
             }
+            state.events.emit("updateSongList");
         });
     };
 
     state.songsManager.playNextSong = () => {
+        console.log("NEXT")
         if (state.current) {
             try {
-                state.current.stop()
+                // state.current.stop()
             } catch (e) {
             }
         }
@@ -169,6 +190,7 @@ module.exports = (state) => {
         });
         let nextSong;
         if (totalVotes === 0) {
+            console.log("RANDOM")
             nextSong = state.queue[Math.floor(Math.random() * state.queue.length)];
         } else {
             nextSong = state.queue[nextSongIndex];
@@ -179,7 +201,10 @@ module.exports = (state) => {
         state.events.emit("play");
     };
 
-    songs.forEach(state.songsManager.addToQueue);
+    songs.forEach((song) => {
+        song.by = "BOT  ";
+        state.songsManager.addToQueue(song)
+    });
 };
 
 function youtube_parser(url) {
