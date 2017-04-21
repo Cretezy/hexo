@@ -149,10 +149,10 @@ module.exports = (state) => {
 
     state.songsManager = {};
 
-    state.songsManager.addToQueue = (song) => {
+    state.songsManager.addToQueue = (song, callback) => {
         song.votes = 0;
         song.uuid = uuid();
-        const index = state.queue.length
+        const index = state.queue.length;
         state.queue.push(song);
         state.youtube.videos.list({
             id: youtube_parser(song.path),
@@ -160,11 +160,12 @@ module.exports = (state) => {
         }, function (err, data, response) {
             if (err || response.statusCode !== 200 || data.items.length === 0) {
                 // ehh something wrong, delete
-                delete state.queue[index];
+                state.queue.splice (index, 1);
             } else {
                 song.title = data.items[0].snippet.title;
             }
             state.events.emit("updateSongList");
+            callback && callback();
         });
     };
 
@@ -202,7 +203,7 @@ module.exports = (state) => {
     };
 
     songs.forEach((song) => {
-        song.by = "BOT  ";
+        song.by = "BOT";
         state.songsManager.addToQueue(song)
     });
 };

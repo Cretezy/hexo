@@ -15,11 +15,15 @@ class App extends Component {
 
         this.socket.on('currentSong', (currentSong) => {
             this.setState({currentSong});
-            document.title = "Hexo | " + currentSong.name;
+            document.title = "Hexo | " + currentSong.title;
         });
 
         this.socket.on('chat', (chat) => {
             this.setState((prevState) => ({messages: prevState.messages.concat(chat)}));
+        });
+
+        this.socket.on('online', (online) => {
+            this.setState({users: online});
         });
 
         const name = localStorage.getItem("name") || "";
@@ -37,7 +41,8 @@ class App extends Component {
             chatInput: "",
             nameInput: "",
             name,
-            messages: []
+            messages: [],
+            users: [],
         }
     }
 
@@ -123,7 +128,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v3.1.0</h2>
+                    <h2>Welcome to Hexo v3.2.0</h2>
                 </div>
 
                 <audio
@@ -172,15 +177,19 @@ class App extends Component {
                 {this.state.futureSongs
                     ? <SongList songs={this.state.futureSongs} onVote={this.onVote.bind(this)}/>
                     : <div>Loading future songs...</div>}
+                {this.state.name !== "" &&
+                <form onSubmit={this.addSong.bind(this)}>
+                    <input value={this.state.songInput} onChange={this.changeInput("songInput").bind(this)}/>
+                    <input type="submit" value="Add song"/>
+                </form>
+                }
 
 
+                <OnlineUsers users={this.state.users}/>
+
+                <hr/>
                 {this.state.name !== "" ?
                     <div>
-                        <form onSubmit={this.addSong.bind(this)}>
-                            <input value={this.state.songInput} onChange={this.changeInput("songInput").bind(this)}/>
-                            <input type="submit" value="Add song"/>
-                        </form>
-                        <hr/>
                         <form onSubmit={this.sendChat.bind(this)}>
                             <input value={this.state.chatInput} onChange={this.changeInput("chatInput").bind(this)}/>
                             <input type="submit" value="Send"/>
@@ -243,6 +252,17 @@ function Message({message}) {
     return (
         <div>
             <strong>{message.name}</strong>: {message.text}
+        </div>
+    );
+}
+
+function OnlineUsers({users}) {
+    return (
+        <div>
+            {users.length > 0 && <div><hr/><h3>Online Users</h3></div>}
+            {users.map(
+                (user) => <div key={user.uuid}>{user.name}</div>
+            )}
         </div>
     );
 }

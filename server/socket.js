@@ -3,50 +3,69 @@ const uuid = require('uuid/v4');
 module.exports = (state) => {
     const {io, events} = state;
     const connections = [];
-    io.on('connection', (client) => {
-        sendCurrent(client);
-        let name;
-        client.on('setName', (newName) => {
-            name = newName;
+    io.on('connection', (socket) => {
+        const connection = {socket, name: "", uuid: uuid()};
+        connections.push(connection);
+        updateCurrent(socket);
+        updateOnline();
+
+        socket.on('setName', (newName) => {
+            connection.name = newName;
+            updateOnline();
         });
 
-        client.on('chat', (text) => {
-            if (text && name) {
-                io.emit('chat', {name, text, time: new Date().getTime(), uuid: uuid()});
+        socket.on('chat', (text) => {
+            if (text && connection.name) {
+                io.emit('chat', {
+                    name: connection.name, text,
+                    time: new Date().getTime(), uuid: uuid()
+                });
             }
         });
 
-        client.on('vote', (uuid) => {
+        socket.on('vote', (uuid) => {
             state.queue.find((song) => song.uuid === uuid).votes++;
             events.emit("updateSongList");
         });
 
-        client.on('skip', () => {
-            console.log("SKIP");
+        socket.on('skip', () => {
             state.current.stop();
-            // state.songsManager.playNextSong();
         });
 
-        client.on('addSong', (path) => {
-            // console.log(path)
-            state.songsManager.addToQueue({path, type: state.types.YOUTUBE, by: name, title: ""});
-            // events.emit("updateSongList");
+        socket.on('addSong', (path) => {
+            if (connection.name) {
+                state.songsManager.addToQueue({
+                    path, type: state.types.YOUTUBE,
+                    by: connection.name, title: ""
+                });
+            }
         });
 
-        client.on('disconnect', () => {
+        socket.on('disconnect', () => {
+            console.log("disconnect", connections.indexOf(connection));
+            connections.splice(connections.indexOf(connection), 1);
+            updateOnline();
         });
     });
 
     events.on("play", () => {
-        sendCurrent(io);
+        updateCurrent(io);
     });
 
     events.on("updateSongList", () => {
-        sendCurrent(io);
+        updateCurrent(io);
     });
 
-    function sendCurrent(client) {
+    function updateCurrent(client) {
         client.emit('currentSong', state.current.source);
         client.emit('songList', state.queue.filter((song) => song.title !== ""));
+    }
+
+    function updateOnline() {
+        io.emit('online',
+            connections
+                .filter((connection) => connection.name)
+                .map((connection) => ({name: connection.name, uuid: connection.uuid}))
+        );
     }
 };
