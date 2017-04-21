@@ -2,9 +2,10 @@ const fs = require("fs");
 const youtubedl = require('youtube-dl');
 const ffmpeg = require('fluent-ffmpeg');
 const nodeshout = require("nodeshout");
+const uuid = require('uuid/v4');
 
 module.exports = (state) => {
-    const types = {
+    state.types = {
         LOCAL: 0,
         YOUTUBE: 1
     };
@@ -12,7 +13,7 @@ module.exports = (state) => {
     function stream(source, callback) {
         console.log('Starting to play', source.name, source.path);
         switch (source.type) {
-            case  types.LOCAL:
+            case  state.types.LOCAL:
                 // const fileStream = new nodeshout.FileReadStream(source.path, 4096 * 8);
                 // const shoutStream = fileStream.pipe(new nodeshout.ShoutStream(shout));
                 //
@@ -81,7 +82,7 @@ module.exports = (state) => {
                         stopped = true;
                     }
                 };
-            case types.YOUTUBE:
+            case state.types.YOUTUBE:
                 const video = youtubedl(source.path, [
                     '-x',
                     '--audio-format', 'mp3',
@@ -117,43 +118,73 @@ module.exports = (state) => {
 
 
     const songs = [
-        // {name: "wHere dA blOW", path: "./songs/skimask-wheredablow.mp3", type: types.LOCAL},
-        // {name: "lOok aT meEEE", path: "./songs/xxxtentacion-lookatme.mp3", type: types.LOCAL},
-        // {name: "sidEeAlkS", path: "./songs/theweeknd-sidewalks.mp3", type: songs.types.LOCAL},
-        {name: "heartlessss", path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: types.YOUTUBE},
-        {name: "blooowww", path: "https://www.youtube.com/watch?v=Aq81qz-iA-o", type: types.YOUTUBE},
-        {name: "look at mee", path: "https://www.youtube.com/watch?v=Wmjpp0_6kb0", type: types.YOUTUBE},
+        // {name: "wHere dA blOW", path: "./songs/skimask-wheredablow.mp3", type: state.types.LOCAL},
+        // {name: "lOok aT meEEE", path: "./songs/xxxtentacion-lookatme.mp3", type: state.types.LOCAL},
+        // {name: "sidEeAlkS", path: "./songs/theweeknd-sidewalks.mp3", type: songs.state.types.LOCAL},
+        {path: "https://www.youtube.com/watch?v=Wmjpp0_6kb0", type: state.types.YOUTUBE},
+        {path: "https://www.youtube.com/watch?v=Aq81qz-iA-o", type: state.types.YOUTUBE},
+        {path: "https://www.youtube.com/watch?v=Co0tTeuUVhU", type: state.types.YOUTUBE},
     ];
 
     state.current = null;
+    state.queue = [];
+
     state.songsManager = {};
 
-    state.songsManager.getNextSong = () => {
-        const futureSongs = state.songsManager.getFutureSongs();
-        return futureSongs[Math.floor(Math.random() * futureSongs.length)];
+    state.songsManager.addToQueue = (song) => {
+        song.votes = 0;
+        song.uuid = uuid();
+        state.queue.push(song);
+        state.youtube.videos.list({
+            id: youtube_parser(song.path),
+            part: 'snippet',
+        }, function (err, data, response) {
+            if (err || response.statusCode !== 200) {
+                console.error('Error yt: ' + err);
+            } else {
+                song.name = data.items[0].snippet.title;
+                state.events.emit("updateSongList");
+            }
+        });
     };
 
-    state.songsManager.getFutureSongs = () => {
-        return state.current === null
-            ? songs
-            : songs.filter((song) => {
-                return song.path !== state.current.source.path;
-            });
-    };
-
-    function playSongs() {
+    state.songsManager.playNextSong = () => {
         if (state.current) {
             try {
                 state.current.stop()
             } catch (e) {
             }
         }
-        // Doesn't play same song twice
-        const nextSong = state.songsManager.getNextSong();
-        state.current = stream(nextSong, playSongs);
+        let nextSongIndex = -1;
+        let totalVotes = 0;
+        state.queue.forEach((song, index) => {
+            if (nextSongIndex === -1) {
+                nextSongIndex = index;
+            } else {
+                if (song.votes > state.queue[nextSongIndex].votes) {
+                    nextSongIndex = index;
+                }
+            }
+            totalVotes += song.votes;
+        });
+        let nextSong;
+        if (totalVotes === 0) {
+            nextSong = state.queue[Math.floor(Math.random() * state.queue.length)];
+        } else {
+            nextSong = state.queue[nextSongIndex];
+        }
+        nextSong.votes = 0;
+        // state.queue.push(nextSong);
+        state.current = stream(nextSong, state.songsManager.playNextSong);
         state.events.emit("play");
-    }
+    };
 
-    state.songsManager.playNextSong = playSongs;
+    songs.forEach(state.songsManager.addToQueue);
 };
+
+function youtube_parser(url) {
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[7].length === 11) ? match[7] : false;
+}
 

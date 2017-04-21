@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import './App.css';
 import socket from 'socket.io-client';
 import {HOST, ICECAST} from "./hosts";
+import classNames from 'classnames';
 
 class App extends Component {
     constructor() {
@@ -14,6 +15,7 @@ class App extends Component {
 
         this.socket.on('currentSong', (currentSong) => {
             this.setState({currentSong});
+            document.title = "Hexo | " + currentSong.name;
         });
 
         this.state = {
@@ -22,6 +24,7 @@ class App extends Component {
             currentSong: null,
             muted: false,
             stopped: true,
+            songInput: "",
         }
     }
 
@@ -68,11 +71,27 @@ class App extends Component {
         this.setState((prevState) => ({muted: !prevState.muted}), this.refreshVolume);
     }
 
+    changeSongInput(event) {
+        this.setState({songInput: event.target.value});
+    }
+
+    addSong(event) {
+        event.preventDefault();
+        this.socket.emit("addSong", this.state.songInput);
+        this.setState({songInput: ""});
+    }
+
+    onVote(uuid) {
+        return () => {
+            this.socket.emit("vote", uuid)
+        }
+    }
+
     render() {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v2.0.1</h2>
+                    <h2>Welcome to Hexo v2.0.3</h2>
                 </div>
 
                 <audio
@@ -88,40 +107,69 @@ class App extends Component {
 
                 <br/>
                 <br/>
-                <br/>
 
-                <button onClick={this.reloadAudio.bind(this)} disabled={this.state.stopped}>Refresh audio</button>
-                <button onClick={this.toggleMute.bind(this)}>Toggle mute ({this.state.muted ? "on" : "off"})</button>
-                <button onClick={this.toggleStop.bind(this)}>{this.state.stopped ? "Start" : "Stop"} audio</button>
-                <button onClick={this.skip.bind(this)}>Skip</button>
+                <div>
+                    <button onClick={this.toggleStop.bind(this)}
+                            className="button blue">
+                        {this.state.stopped ? "Start" : "Stop"} audio
+                    </button>
+                </div>
+                <div>
+                    <button onClick={this.reloadAudio.bind(this)}
+                            className="button green small" disabled={this.state.stopped}>
+                        Refresh audio
+                    </button>
+                    <button onClick={this.toggleMute.bind(this)}
+                            className={classNames("button small", this.state.muted ? "red" : "blue")}>
+                        Toggle mute ({this.state.muted ? "on" : "off"})
+                    </button>
+                </div>
+                <div>
+                    <button onClick={this.skip.bind(this)}
+                            className="button red">
+                        Skip song
+                    </button>
+                </div>
+
                 <br/>
                 <br/>
-                <hr/>
 
                 {this.state.currentSong &&
                 <h2>Currently playing: {this.state.currentSong.name}</h2>}
 
                 {this.state.futureSongs
-                    ? <SongList songs={this.state.futureSongs}/>
+                    ? <SongList songs={this.state.futureSongs} onVote={this.onVote.bind(this)}/>
                     : <div>Loading future songs...</div>}
+
+                <form onSubmit={this.addSong.bind(this)}>
+                    <input value={this.state.songInput} onChange={this.changeSongInput.bind(this)}/>
+                    <input type="submit" value="Add song"/>
+                </form>
             </div>
         );
     }
 }
 
-function SongList({songs}) {
+function SongList({songs, onVote}) {
+    // Sort by number of votes
+    songs.sort(function (a, b) {
+        return (a.votes < b.votes) ? 1 : ((b.votes < a.votes) ? -1 : 0);
+    });
+
     return (
         <div>
-            <h2>Future possible songs (random)</h2>
+            <h3>Queue</h3>
             {songs.map(
-                (song) => <Song key={song.path} song={song}/>
+                (song) => <Song key={song.uuid} song={song} onVote={onVote}/>
             )}
         </div>
     );
 }
-function Song({song}) {
+function Song({song, onVote}) {
     return (
-        <div>{song.name}</div>
+        <div>
+            <button onClick={onVote(song.uuid)}>Votes ({song.votes})</button>
+            {song.name}</div>
     );
 }
 

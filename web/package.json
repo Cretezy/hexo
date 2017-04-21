@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "classnames": "^2.2.5",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
     "socket.io-client": "^1.7.3"
@@ -12,7 +13,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "REACT_APP_HOST='https://hexo.craftthatblock.com' REACT_APP_ICECAST_HOST='https://hexo.craftthatblock.com/music' react-scripts build",
+    "build": "REACT_APP_HOST='https://hexo.craftthatblock.com' REACT_APP_ICECAST='https://hexo.craftthatblock.com/music' react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   }

@@ -3,11 +3,19 @@ module.exports = (state) => {
     io.on('connection', (client) => {
         sendCurrent(client);
 
-        client.on('vote', (data) => {
+        client.on('vote', (uuid) => {
+            state.queue.find((song)=> song.uuid === uuid).votes++;
+            events.emit("updateSongList");
         });
 
         client.on('skip', () => {
             state.songsManager.playNextSong();
+        });
+
+        client.on('addSong', (path) => {
+            // console.log(path)
+            state.songsManager.addToQueue({path, type: state.types.YOUTUBE});
+            events.emit("updateSongList");
         });
 
         client.on('disconnect', () => {
@@ -18,8 +26,12 @@ module.exports = (state) => {
         sendCurrent(io);
     });
 
+    events.on("updateSongList", () => {
+        sendCurrent(io);
+    });
+
     function sendCurrent(client) {
         client.emit('currentSong', state.current.source);
-        client.emit('songList', state.songsManager.getFutureSongs());
+        client.emit('songList', state.queue);
     }
 };
