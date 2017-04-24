@@ -82,6 +82,11 @@
     background-color: #bb3a3a;
 }
 
+table.song-list{
+    text-align: left;
+    margin: 0 auto;
+}
+
 input[type=range] {
     -webkit-appearance: none;
     width: 100%;

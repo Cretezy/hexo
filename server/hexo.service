@@ -1,0 +1,11 @@
+[Unit]
+Description=Hexo server
+After=icecast2.service
+Requires=icecast2.service
+PartOf=icecast2.service
+
+[Service]
+ExecStart=/bin/bash -c "sleep 3; cd /root/hexo/server/ && /root/.nvm/versions/node/v6.10.2/bin/node index.js"
+
+[Install]
+WantedBy=multi-user.target

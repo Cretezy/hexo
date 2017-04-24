@@ -1,0 +1,65 @@
+<icecast>
+    <limits>
+        <clients>100</clients>
+        <sources>3</sources>
+        <threadpool>5</threadpool>
+        <queue-size>524288</queue-size>
+        <client-timeout>30</client-timeout>
+        <header-timeout>15</header-timeout>
+        <source-timeout>10</source-timeout>
+        <burst-size>0</burst-size>
+        <!--<burst-size>16384</burst-size>-->
+    </limits>
+
+    <authentication>
+        <source-password>hackme</source-password>
+        <relay-password>hackme</relay-password>
+
+        <admin-user>admin</admin-user>
+        <admin-password>hackme</admin-password>
+    </authentication>
+
+    <listen-socket>
+        <port>8001</port>
+    </listen-socket>
+
+    <mount type="normal">
+        <mount-name>/hexo</mount-name>
+        <type>application/ogg</type>
+        <fallback-mount>/mii</fallback-mount>
+        <fallback-override>1</fallback-override>
+        <fallback-when-full>1</fallback-when-full>
+    </mount>
+
+    <fileserve>0</fileserve>
+
+    <paths>
+        <!-- basedir is only used if chroot is enabled -->
+        <!--<basedir>/usr/share/icecast2</basedir>-->
+
+        <!-- Note that if <chroot> is turned on below, these paths must both
+             be relative to the new root, not the original root -->
+        <logdir>/var/log/icecast2</logdir>
+        <webroot>/usr/share/icecast2/web</webroot>
+        <adminroot>/usr/share/icecast2/admin</adminroot>
+    </paths>
+
+    <logging>
+        <accesslog>access.log</accesslog>
+        <errorlog>error.log</errorlog>
+        <loglevel>3</loglevel>
+        <logsize>10000</logsize>
+        <!-- Rotational logs -->
+        <!-- <logarchive>1</logarchive> -->
+    </logging>
+
+    <security>
+        <chroot>0</chroot>
+        <!--
+        <changeowner>
+            <user>nobody</user>
+            <group>nogroup</group>
+        </changeowner>
+        -->
+    </security>
+</icecast>

@@ -9,13 +9,14 @@ class App extends Component {
         super();
         this.socket = socket(HOST);
 
-        this.socket.on('songList', (futureSongs) => {
-            this.setState({futureSongs});
-        });
-
-        this.socket.on('currentSong', (currentSong) => {
-            this.setState({currentSong});
-            document.title = "Hexo | " + currentSong.title;
+        this.socket.on('update', (data) => {
+            this.setState({
+                currentlyPlaying: data.currentlyPlaying,
+                currentlyLoading: data.currentlyLoading,
+                queue: data.queue,
+            });
+            // console.log(data);
+            document.title = "Hexo | " + data.currentlyPlaying.title;
         });
 
         this.socket.on('chat', (chat) => {
@@ -26,6 +27,12 @@ class App extends Component {
             this.setState({users: online});
         });
 
+        // this.socket.on('reconnect', () => {
+        //     if (!this.state.stopped) {
+        //         // this.reloadAudio();
+        //     }
+        // });
+
         const name = localStorage.getItem("name") || "";
         if (name !== "") {
             this.socket.emit("setName", name);
@@ -33,8 +40,9 @@ class App extends Component {
 
         this.state = {
             volume: parseFloat(localStorage.getItem("volume")) || 0.75,
-            futureSongs: null,
-            currentSong: null,
+            queue: null,
+            currentlyPlaying: null,
+            currentlyLoading: null,
             muted: false,
             stopped: true,
             songInput: "",
@@ -128,7 +136,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v3.2.1</h2>
+                    <h2>Welcome to Hexo v3.6.3</h2>
                 </div>
 
                 <audio
@@ -171,11 +179,14 @@ class App extends Component {
                 <br/>
                 <br/>
 
-                {this.state.currentSong &&
-                <h2>Currently playing: {this.state.currentSong.title}</h2>}
+                {this.state.currentlyPlaying &&
+                <h2>Currently playing: {this.state.currentlyPlaying.title}</h2>}
+                {this.state.currentlyPlaying && this.state.currentlyLoading &&
+                this.state.currentlyPlaying.uuid !== this.state.currentlyLoading.uuid &&
+                <h2>Currently loading: {this.state.currentlyLoading.title}</h2>}
 
-                {this.state.futureSongs
-                    ? <SongList songs={this.state.futureSongs} onVote={this.onVote.bind(this)}/>
+                {this.state.queue
+                    ? <SongList songs={this.state.queue} onVote={this.onVote.bind(this)}/>
                     : <div>Loading future songs...</div>}
                 {this.state.name !== "" &&
                 <form onSubmit={this.addSong.bind(this)}>
@@ -217,18 +228,26 @@ function SongList({songs, onVote}) {
     return (
         <div>
             <h3>Queue</h3>
-            {songs.map(
-                (song) => <Song key={song.uuid} song={song} onVote={onVote}/>
-            )}
+            <table className="song-list">
+                <tbody>
+                {songs.map(
+                    (song) => <Song key={song.uuid} song={song} onVote={onVote}/>
+                )}
+                </tbody>
+            </table>
         </div>
     );
 }
 function Song({song, onVote}) {
     return (
-        <div>
-            <button className="vote" onClick={onVote(song.uuid)}>Votes ({song.votes})</button>
-            <strong>{song.by}</strong> - {song.title}
-        </div>
+        <tr>
+            <td>
+                <button className="vote" onClick={onVote(song.uuid)}>Votes ({song.votes})</button>
+            </td>
+            <td>
+                <strong>{song.by}</strong> - {song.title}
+            </td>
+        </tr>
     );
 }
 
@@ -259,7 +278,9 @@ function Message({message}) {
 function OnlineUsers({users}) {
     return (
         <div>
-            {users.length > 0 && <div><hr/><h3>Online Users</h3></div>}
+            {users.length > 0 && <div>
+                <hr/>
+                <h3>Online Users</h3></div>}
             {users.map(
                 (user) => <div key={user.uuid}>{user.name}</div>
             )}

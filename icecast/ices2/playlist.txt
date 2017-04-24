@@ -1,0 +1,2 @@
+./music/mii1.ogg
+./music/mii2.ogg

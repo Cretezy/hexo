@@ -1,0 +1,11 @@
+[Unit]
+Description=Ices2 Icecast Source
+After=icecast2.service
+Requires=icecast2.service
+PartOf=icecast2.service
+
+[Service]
+ExecStart=/bin/bash -c "sleep 3; /usr/bin/ices2 ices-playlist.xml"
+
+[Install]
+WantedBy=multi-user.target

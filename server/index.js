@@ -8,31 +8,12 @@ const httpProxy = require('http-proxy');
 const greenlock = require('greenlock-express');
 const google = require('googleapis');
 
-
 // Setup nodeshout
 nodeshout.init();
-
-const shout = nodeshout.create();
-
-shout.setHost(process.env.ICECAST_HOST);
-shout.setPort(process.env.ICECAST_PORT);
-shout.setUser(process.env.ICECAST_USER);
-shout.setPassword(process.env.ICECAST_PASS);
-shout.setMount(process.env.ICECAST_MOUNT);
-shout.setFormat(1); // 0=ogg, 1=mp3
-shout.setAudioInfo('bitrate', '128');
-shout.setAudioInfo('samplerate', '44100');
-shout.setAudioInfo('channels', '2');
-
-if (shout.open() !== 0) {
-    console.log("Could not connect")
-}
-
 
 const app = express();
 
 const state = {
-    shout,
     app,
     events: new EventEmitter(),
 };
@@ -66,7 +47,7 @@ if (process.env.NODE_ENV === 'production') {
         agreeTos: true,
         approvedDomains: process.env.SSL_DOMAINS.split(";"),
         app,
-        debug: true
+        // debug: true
     }).listen(80, 443);
 } else {
     server = require('http').createServer(app);
@@ -79,5 +60,4 @@ if (process.env.NODE_ENV === 'production') {
 state.io = require('socket.io')(server);
 require('./songs')(state);
 require('./socket')(state);
-state.songsManager.playNextSong();
 console.log('Starting audio...');

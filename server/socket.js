@@ -25,11 +25,17 @@ module.exports = (state) => {
 
         socket.on('vote', (uuid) => {
             state.queue.find((song) => song.uuid === uuid).votes++;
-            events.emit("updateSongList");
+            events.emit("update");
         });
 
+        // TODO: add logic to check if on server reload, and in prod
+        // socket.on('reconnect', () => {
+        //     socket.emit("reconnect")
+        // });
+
         socket.on('skip', () => {
-            state.current.stop();
+            // state.current.stop();
+            state.songsManager.playNextSong(true);
         });
 
         socket.on('addSong', (path) => {
@@ -42,23 +48,24 @@ module.exports = (state) => {
         });
 
         socket.on('disconnect', () => {
-            console.log("disconnect", connections.indexOf(connection));
             connections.splice(connections.indexOf(connection), 1);
             updateOnline();
         });
     });
 
-    events.on("play", () => {
+    events.on("update", () => {
         updateCurrent(io);
     });
 
-    events.on("updateSongList", () => {
-        updateCurrent(io);
-    });
 
     function updateCurrent(client) {
-        client.emit('currentSong', state.current.source);
-        client.emit('songList', state.queue.filter((song) => song.title !== ""));
+        if (state.current) {
+            client.emit('update', {
+                currentlyPlaying: state.playing ? state.playing.source : state.current.source,
+                currentlyLoading: state.loading.source,
+                queue: state.queue.filter((song) => song.title !== "")
+            });
+        }
     }
 
     function updateOnline() {

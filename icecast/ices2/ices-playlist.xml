@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<ices>
+    <background>0</background>
+    <logpath>/var/log/ices</logpath>
+    <logfile>ices.log</logfile>
+    <loglevel>3</loglevel>
+    <consolelog>1</consolelog>
+
+    <stream>
+        <input>
+            <module>playlist</module>
+            <param name="type">basic</param>
+            <param name="file">./playlist.txt</param>
+
+            <param name="random">0</param>
+            <param name="restart-after-reread">1</param>
+            <param name="once">0</param>
+        </input>
+
+        <instance>
+            <hostname>localhost</hostname>
+            <port>8000</port>
+            <password>hackme</password>
+            <mount>/mii</mount>
+
+            <reconnectdelay>5</reconnectdelay>
+            <reconnectattempts>-1</reconnectattempts>
+
+            <maxqueuelength>80</maxqueuelength>
+
+            <encode>
+                <nominal-bitrate>128000</nominal-bitrate>
+                <samplerate>44100</samplerate>
+                <channels>2</channels>
+            </encode>
+        </instance>
+    </stream>
+</ices>
