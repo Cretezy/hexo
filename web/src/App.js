@@ -9,14 +9,15 @@ class App extends Component {
         super();
         this.socket = socket(HOST);
 
-        this.socket.on('update', (data) => {
+        this.socket.on('updateCurrent', (data) => {
             this.setState({
                 currentlyPlaying: data.currentlyPlaying,
                 currentlyLoading: data.currentlyLoading,
-                queue: data.queue,
             });
-            // console.log(data);
             document.title = "Hexo | " + data.currentlyPlaying.title;
+        });
+        this.socket.on('updateQueue', (queue) => {
+            this.setState({queue});
         });
 
         this.socket.on('chat', (chat) => {
@@ -27,11 +28,15 @@ class App extends Component {
             this.setState({users: online});
         });
 
-        // this.socket.on('reconnect', () => {
-        //     if (!this.state.stopped) {
-        //         // this.reloadAudio();
-        //     }
-        // });
+        this.socket.on('addedSong', () => {
+            this.setState({songInput: "", songAdding: false});
+        });
+
+        this.socket.on('reload', () => {
+            if (!this.state.stopped) {
+                this.reloadAudio();
+            }
+        });
 
         const name = localStorage.getItem("name") || "";
         if (name !== "") {
@@ -45,6 +50,7 @@ class App extends Component {
             currentlyLoading: null,
             muted: false,
             stopped: true,
+            songAdding: false,
             songInput: "",
             chatInput: "",
             nameInput: "",
@@ -87,7 +93,7 @@ class App extends Component {
     componentDidMount() {
         this.player.volume = this.state.volume;
         this.player.play();
-        if(!this.player.paused){
+        if (!this.player.paused) {
             this.setState({stopped: false});
         }
     }
@@ -111,14 +117,14 @@ class App extends Component {
 
     addSong(event) {
         event.preventDefault();
-        this.socket.emit("addSong", this.state.songInput);
-        this.setState({songInput: ""});
+        if (!this.state.songAdding) {
+            this.socket.emit("addSong", this.state.songInput);
+            this.setState({songAdding: true});
+        }
     }
 
     onVote(uuid) {
-        return () => {
-            this.socket.emit("vote", uuid)
-        }
+        this.socket.emit("vote", uuid)
     }
 
     setName(event) {
@@ -140,7 +146,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v3.6.7</h2>
+                    <h2>Welcome to Hexo v4.0.0</h2>
                 </div>
 
                 <audio
@@ -194,8 +200,11 @@ class App extends Component {
                     : <div>Loading future songs...</div>}
                 {this.state.name !== "" &&
                 <form onSubmit={this.addSong.bind(this)}>
-                    <input value={this.state.songInput} onChange={this.changeInput("songInput").bind(this)}/>
-                    <input type="submit" value="Add song"/>
+                    <input
+                        disabled={this.state.songAdding}
+                        value={this.state.songInput}
+                        onChange={this.changeInput("songInput").bind(this)}/>
+                    <input type="submit" disabled={this.state.songAdding} value="Add song"/>
                 </form>
                 }
 
@@ -246,10 +255,16 @@ function Song({song, onVote}) {
     return (
         <tr>
             <td>
-                <button className="vote" onClick={onVote(song.uuid)}>Votes ({song.votes})</button>
+                <button className="vote" onClick={() => {
+                    if (song.ready) {
+                        onVote(song.uuid)
+                    }
+                }}>
+                    Votes ({song.votes})
+                </button>
             </td>
             <td>
-                <strong>{song.by}</strong> - {song.title}
+                <strong>{song.by}</strong> - <span style={!song.ready ? {color: "gray"} : {}}>{song.title}</span>
             </td>
         </tr>
     );

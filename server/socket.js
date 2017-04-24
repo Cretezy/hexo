@@ -7,6 +7,7 @@ module.exports = (state) => {
         const connection = {socket, name: "", uuid: uuid()};
         connections.push(connection);
         updateCurrent(socket);
+        updateQueue(socket);
         updateOnline();
 
         socket.on('setName', (newName) => {
@@ -25,7 +26,7 @@ module.exports = (state) => {
 
         socket.on('vote', (uuid) => {
             state.queue.find((song) => song.uuid === uuid).votes++;
-            events.emit("update");
+            events.emit("updateQueue");
         });
 
         // TODO: add logic to check if on server reload, and in prod
@@ -43,6 +44,9 @@ module.exports = (state) => {
                 state.songsManager.addToQueue({
                     path, type: state.types.YOUTUBE,
                     by: connection.name, title: ""
+                }, () => {
+                }, () => {
+                    socket.emit('addedSong');
                 });
             }
         });
@@ -53,19 +57,32 @@ module.exports = (state) => {
         });
     });
 
-    events.on("update", () => {
+    events.on("updateQueue", () => {
+        updateQueue(io);
+    });
+    events.on("updateCurrent", () => {
         updateCurrent(io);
+    });
+
+    events.on("updateCurrent", () => {
+        updateCurrent(io);
+    });
+    events.on("reload", () => {
+        reload(io);
     });
 
 
     function updateCurrent(client) {
         if (state.current) {
-            client.emit('update', {
+            client.emit('updateCurrent', {
                 currentlyPlaying: state.playing ? state.playing.source : state.current.source,
                 currentlyLoading: state.loading.source,
-                queue: state.queue.filter((song) => song.title !== "")
             });
         }
+    }
+
+    function updateQueue(client) {
+        client.emit('updateQueue', state.queue);
     }
 
     function updateOnline() {
@@ -74,5 +91,9 @@ module.exports = (state) => {
                 .filter((connection) => connection.name)
                 .map((connection) => ({name: connection.name, uuid: connection.uuid}))
         );
+    }
+
+    function reload() {
+        io.emit('reload');
     }
 };

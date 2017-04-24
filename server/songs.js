@@ -101,7 +101,7 @@ module.exports = (state) => {
                         }
                         const send = state.shout.send(chunk, chunk.length);
                         if (send !== nodeshout.ErrorTypes.SUCCESS) {
-                            console.log("Error sending", get_error_code(send));
+                            console.log("Error sending", getShoutErrorCode(send));
                         }
 
                         const delay = state.shout.delay();
@@ -122,92 +122,91 @@ module.exports = (state) => {
                 });
 
 
-                const cachePath = "cache/" + source.path;
-                let downloaded = 0;
-                if (fs.existsSync(cachePath)) {
-                    downloaded = fs.statSync(cachePath).size;
-                }
+                // const cachePath = "cache/" + source.path;
+                // let downloaded = 0;
+                // if (fs.existsSync(cachePath)) {
+                //     downloaded = fs.statSync(cachePath).size;
+                // }
+                //
+                // const video = youtubedl("https://www.youtube.com/watch?v=" + source.path, [
+                //     '-x',
+                //     '--audio-format=vorbis',
+                //     '--proxy=96.239.193.243:8080',
+                //     // '--proxy=66.109.41.235:80',
+                //     // '--proxy=201.16.140.205:80',
+                //     '--format=171',
+                //     '--no-cache-dir'
+                // ], {cwd: __dirname});
+                //
+                // let transcode = null;
+                // let cache;
+                // let totalSeconds;
+                // video.on('info', function (info) {
+                //     const timePart = info.duration.split(":").reverse();
+                //     const seconds = parseInt(timePart[0]);
+                //     const minutes = timePart.length >= 2 ? parseInt(timePart[1]) : 0;
+                //     const hours = timePart.length >= 3 ? parseInt(timePart[2]) : 0;
+                //     totalSeconds = seconds + ((minutes + (hours * 60)) * 60);
+                //
+                //     const metadata = nodeshout.createMetadata();
+                //     metadata.add('song', info.title);
+                //     // state.shout.setMetadata(metadata); // BREAKS SOCKET SENDING (?)
+                //     if (downloaded > 0 && info.size === downloaded) {
+                //         console.log("Using cached")
+                //         setTimeout(() => {
+                //             try {
+                //                 // XXX: Cancel video download
+                //                 video.pause();
+                //                 video.emit('end');
+                //                 video.close()
+                //             } catch (e) {
+                //             }
+                //         }, 1);
+                //         cache = true;
+                //     } else {
+                //         cache = false;
+                //     }
+                readCache((cache) => {
+                    if (source.path in cache) {
+                        // It's in the cache!
+                        console.log("PLAYING FROM CACHE", source.title)
 
-                const video = youtubedl("https://www.youtube.com/watch?v=" + source.path, [
-                    '-x',
-                    '--audio-format=vorbis',
-                    '--proxy=201.16.140.205:80',
-                    '--format=171'
-                ], {cwd: __dirname});
+                        isReady = true;
+                        ready();
 
-                let transcode = null;
-                let cache;
-                let totalSeconds;
-                video.on('info', function (info) {
-                    const timePart = info.duration.split(":").reverse();
-                    const seconds = parseInt(timePart[0]);
-                    const minutes = timePart.length >= 2 ? parseInt(timePart[1]) : 0;
-                    const hours = timePart.length >= 3 ? parseInt(timePart[2]) : 0;
-                    totalSeconds = seconds + ((minutes + (hours * 60)) * 60);
-
-                    const metadata = nodeshout.createMetadata();
-                    metadata.add('song', info.title);
-                    // state.shout.setMetadata(metadata); // BREAKS SOCKET SENDING (?)
-                    if (downloaded > 0 && info.size === downloaded) {
-                        console.log("Using cached")
-                        setTimeout(() => {
-                            try {
-                                // XXX: Cancel video download
-                                video.pause();
-                                video.emit('end');
-                                video.close()
-                            } catch (e) {
-                            }
-                        }, 1);
-                        cache = true;
                     } else {
-                        cache = false;
+                        console.log("NOT IN CACHE")
                     }
-
-                    isReady = true;
-                    ready();
                 });
-
+                let transcode;
                 const play = () => {
                     // Wait until ready
                     if (!isReady) {
                         setTimeout(play, 50);
                         return;
                     }
+                    try {
+                        transcode = ffmpeg("cache/" + source.path + ".ogg");
+                        transcode
+                            .noVideo()
+                            .audioCodec('libvorbis')
+                            .format('ogg')
+                            .on('error', () => {
+                            })
+                            .writeToStream(converter, {end: true});
+                    } catch (e) {
 
-                    let nextStream;
-                    if (cache) {
-                        // Read from cache
-                        nextStream = cachePath;
-                    } else {
-                        // Read from Youtube and add to cache
-                        if (fs.existsSync(cachePath)) {
-                            fs.unlinkSync(cachePath); // Delete old
-                        }
-                        const passthrough = new Stream.PassThrough();
-                        video.pipe(passthrough);
-                        passthrough.pipe(fs.createWriteStream(cachePath, {flags: 'w'}));
-                        nextStream = passthrough;
                     }
-
-                    transcode = ffmpeg(nextStream);
-                    transcode
-                        .noVideo()
-                        .audioCodec('libvorbis')
-                        .format('ogg')
-                        .on('error', () => {
-                        })
-                        .writeToStream(converter, {end: true});
 
                     preloadTimer = setTimeout(() => {
                         console.log("Preload Timer");
                         preload();
-                    }, (totalSeconds - 15) * 1000);
+                    }, (source.duration - 5) * 1000);
 
                     finishTimer = setTimeout(() => {
                         console.log("Finish Timer");
                         finished();
-                    }, (totalSeconds - 1) * 1000);
+                    }, (source.duration - 1) * 1000);
                 };
 
                 return {
@@ -262,32 +261,119 @@ module.exports = (state) => {
 
         const code = shout.open();
         if (code !== nodeshout.ErrorTypes.SUCCESS) {
-            console.log("Could not connect to icecast", get_error_code(code))
+            console.log("Could not connect to icecast", getShoutErrorCode(code))
         }
         state.shout = shout;
     };
 
-    state.songsManager.addToQueue = (song, callback) => {
+    state.songsManager.addToQueue = (song, callback = noop, gotTitle = noop) => {
         song.votes = 0;
         song.uuid = uuid();
-        song.path = youtube_parser(song.path);
+        song.ready = false;
+        song.path = getYoutubeId(song.path);
+
         if (song.path === false) {
             // Could not parse id
-            callback && callback();
+            callback();
         } else {
             // Get youtube title
-            state.youtube.videos.list({
-                id: song.path,
-                part: 'snippet',
-            }, (err, data, response) => {
-                if (err || response.statusCode !== 200 || data.items.length === 0) {
-                    // Not a youtube video
-                } else {
-                    song.title = data.items[0].snippet.title;
+            // state.youtube.videos.list({
+            //     id: song.path,
+            //     part: 'snippet',
+            // }, (err, data, response) => {
+            //     if (err || response.statusCode !== 200 || data.items.length === 0) {
+            //         // Not a youtube video
+            //     } else {
+            //         song.title = data.items[0].snippet.title;
+            //         state.queue.push(song);
+            //         state.events.emit("update");
+            //     }
+            //     callback && callback();
+            // });
+
+            // Check if in cache
+            readCache((cache) => {
+                if (song.path in cache) {
+                    // It's in the cache!
+                    song.title = cache[song.path].title;
+                    song.duration = cache[song.path].duration;
+                    song.ready = true;
                     state.queue.push(song);
-                    state.events.emit("update");
+                    state.events.emit("updateQueue");
+                    console.log("Already cached", song.title);
+                    gotTitle();
+                    callback();
+                } else {
+                    // Add to cache
+                    let downloaded = 0;
+                    const cachePath = "cache/" + song.path + ".ogg";
+                    if (fs.existsSync(cachePath)) {
+                        downloaded = fs.statSync(cachePath).size;
+                    }
+                    let index = -1;
+                    try {
+                        const video = youtubedl("https://www.youtube.com/watch?v=" + song.path, [
+                            '-x',
+                            '--audio-format=vorbis',
+                            // '--proxy=96.239.193.243:8080',
+                            // '--proxy=66.109.41.235:80',
+                            // '--proxy=201.16.140.205:80',
+                            '--format=171',
+                            '--no-cache-dir'
+                        ], {start: downloaded, cwd: __dirname});
+
+                        video.on('info', (info) => {
+                            console.log("Starting cached", song.path);
+
+                            const total = info.size + downloaded;
+                            console.log('Total size: ' + total);
+                            const timePart = info.duration.split(":").reverse();
+                            const seconds = parseInt(timePart[0]);
+                            const minutes = timePart.length >= 2 ? parseInt(timePart[1]) : 0;
+                            const hours = timePart.length >= 3 ? parseInt(timePart[2]) : 0;
+                            const totalSeconds = seconds + ((minutes + (hours * 60)) * 60);
+
+                            song.title = info.title;
+                            song.duration = totalSeconds;
+                            index = state.length;
+                            state.queue.push(song);
+                            state.events.emit("updateQueue");
+                            gotTitle();
+
+                            if (downloaded > 0) {
+                                console.log('Resuming from: ' + downloaded);
+                                console.log('Remaining bytes: ' + info.size);
+                            }
+                        });
+                        video.on('end', () => {
+                            'use strict';
+                            console.log('finished downloading', song.path);
+
+
+                            readCache((cache) => {
+                                cache[song.path] = {
+                                    title: song.title,
+                                    duration: song.duration,
+                                    by: song.by
+                                };
+
+                                writeCache(cache, () => {
+                                    song.ready = true;
+                                    state.events.emit("updateQueue");
+                                    callback()
+                                })
+                            })
+                        });
+                        video.pipe(fs.createWriteStream(cachePath, {flags: 'w'}));
+                    } catch (e) {
+                        fs.unlinkSync(cachePath);
+                        console.log("ERROR CACHING", e);
+                        if (index !== -1) {
+                            state.queue.splice(index, 1);
+                            state.events.emit("updateQueue");
+                        }
+                    }
                 }
-                callback && callback();
             });
         }
     };
@@ -295,6 +381,10 @@ module.exports = (state) => {
     state.playing = null;
 
     state.songsManager.playNextSong = (skip = false) => {
+        if (state.loading && state.playing && state.loading.source.uuid !== state.playing.source.uuid) {
+            return
+        }
+
         console.log("Preloading", skip);
 
         let last = null;
@@ -305,11 +395,13 @@ module.exports = (state) => {
         // Get next song to play (more votes, or random but not twice in a row)
         let nextSongIndex = -1;
         let totalVotes = 0;
-        state.queue.forEach((song, index) => {
+        const queueReady = state.queue.filter((song) => song.ready);
+
+        queueReady.forEach((song, index) => {
             if (nextSongIndex === -1) {
                 nextSongIndex = index;
             } else {
-                if (song.votes > state.queue[nextSongIndex].votes) {
+                if (song.votes > queueReady[nextSongIndex].votes) {
                     nextSongIndex = index;
                 }
             }
@@ -317,10 +409,10 @@ module.exports = (state) => {
         });
         let nextSong;
         if (totalVotes === 0) {
-            const queue = last ? state.queue.filter((song) => song.uuid !== last.source.uuid) : state.queue;
+            const queue = last ? queueReady.filter((song) => song.uuid !== last.source.uuid) : queueReady;
             nextSong = queue[Math.floor(Math.random() * queue.length)];
         } else {
-            nextSong = state.queue[nextSongIndex];
+            nextSong = queueReady[nextSongIndex];
         }
 
         // Reset votes
@@ -345,7 +437,7 @@ module.exports = (state) => {
                     }
                 }
                 state.playing = current;
-                state.events.emit("update");
+                state.events.emit("updateCurrent");
             },
             () => {
                 // Finished
@@ -377,9 +469,11 @@ module.exports = (state) => {
                     state.current.play();
                 }
             });
-        state.events.emit("update");
+        state.events.emit("updateCurrent");
+        state.events.emit("updateQueue");
 
     };
+
 
     const addingToQueue = [];
     songs.forEach((song) => {
@@ -389,22 +483,65 @@ module.exports = (state) => {
         })
     });
 
-    async.parallel(addingToQueue,
-        () => {
-            state.songsManager.newShout();
-            state.songsManager.playNextSong();
+    readCache((cache) => {
+        Object.keys(cache).forEach((path) => {
+            if (!songs.find((song) => song.path === "https://www.youtube.com/watch?v=" + path)) {
+                addingToQueue.push((callback) => {
+                    state.songsManager.addToQueue({
+                        path: "https://www.youtube.com/watch?v=" + path,
+                        type: state.types.YOUTUBE,
+                        by: cache[path].by
+                    }, callback);
+                })
+            }
         });
-}
-;
+        async.parallel(addingToQueue,
+            () => {
+                state.songsManager.newShout();
+                state.events.emit("reload");
+                state.songsManager.playNextSong();
+            });
+    });
 
-function youtube_parser(url) {
+
+};
+
+function getYoutubeId(url) {
     const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
     const match = url.match(regExp);
     return (match && match[7].length === 11) ? match[7] : false;
 }
 
-function get_error_code(code) {
+function getShoutErrorCode(code) {
     return Object.keys(nodeshout.ErrorTypes).find((key) => {
         return code === nodeshout.ErrorTypes[key]
     })
+}
+
+const cacheFilePath = 'cache/cache.json';
+function readCache(callback) {
+    fs.exists(cacheFilePath, (exist) => {
+        if (!exist) {
+            callback({})
+        } else {
+            fs.readFile(cacheFilePath, 'utf8', (error, data) => {
+                if (error) {
+                    throw error;
+                }
+                callback(JSON.parse(data))
+            });
+        }
+    })
+}
+
+function writeCache(data, callback) {
+    fs.writeFile(cacheFilePath, JSON.stringify(data), 'utf8', (error) => {
+        if (error) {
+            throw error;
+        }
+        callback();
+    });
+}
+
+function noop() {
 }
