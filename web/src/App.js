@@ -140,7 +140,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v3.6.6</h2>
+                    <h2>Welcome to Hexo v3.6.7</h2>
                 </div>
 
                 <audio
