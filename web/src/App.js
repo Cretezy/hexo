@@ -86,6 +86,10 @@ class App extends Component {
 
     componentDidMount() {
         this.player.volume = this.state.volume;
+        this.player.play();
+        if(!this.player.paused){
+            this.setState({stopped: false});
+        }
     }
 
     reloadAudio() {
@@ -136,7 +140,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v3.6.3</h2>
+                    <h2>Welcome to Hexo v3.6.6</h2>
                 </div>
 
                 <audio

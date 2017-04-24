@@ -17,6 +17,7 @@ module.exports = (state) => {
         console.log('Starting to play', source.title, source.path);
         let hasStopped = false;
         let hasStarted = false;
+        let isReady = false;
 
 
         let preloadTimer;
@@ -131,18 +132,24 @@ module.exports = (state) => {
                     '-x',
                     '--audio-format=vorbis',
                     '--proxy=201.16.140.205:80',
-                    // '--format=171'
+                    '--format=171'
                 ], {cwd: __dirname});
 
                 let transcode = null;
                 let cache;
                 let totalSeconds;
                 video.on('info', function (info) {
-                    console.log("got info")
+                    const timePart = info.duration.split(":").reverse();
+                    const seconds = parseInt(timePart[0]);
+                    const minutes = timePart.length >= 2 ? parseInt(timePart[1]) : 0;
+                    const hours = timePart.length >= 3 ? parseInt(timePart[2]) : 0;
+                    totalSeconds = seconds + ((minutes + (hours * 60)) * 60);
+
                     const metadata = nodeshout.createMetadata();
                     metadata.add('song', info.title);
                     // state.shout.setMetadata(metadata); // BREAKS SOCKET SENDING (?)
-                    if (info.size === downloaded) {
+                    if (downloaded > 0 && info.size === downloaded) {
+                        console.log("Using cached")
                         setTimeout(() => {
                             try {
                                 // XXX: Cancel video download
@@ -157,13 +164,51 @@ module.exports = (state) => {
                         cache = false;
                     }
 
-                    const timePart = info.duration.split(":").reverse();
-                    const seconds = parseInt(timePart[0]);
-                    const minutes = timePart.length >= 2 ? parseInt(timePart[1]) : 0;
-                    const hours = timePart.length >= 3 ? parseInt(timePart[2]) : 0;
-                    totalSeconds = seconds + ((minutes + (hours * 60)) * 60);
+                    isReady = true;
                     ready();
                 });
+
+                const play = () => {
+                    // Wait until ready
+                    if (!isReady) {
+                        setTimeout(play, 50);
+                        return;
+                    }
+
+                    let nextStream;
+                    if (cache) {
+                        // Read from cache
+                        nextStream = cachePath;
+                    } else {
+                        // Read from Youtube and add to cache
+                        if (fs.existsSync(cachePath)) {
+                            fs.unlinkSync(cachePath); // Delete old
+                        }
+                        const passthrough = new Stream.PassThrough();
+                        video.pipe(passthrough);
+                        passthrough.pipe(fs.createWriteStream(cachePath, {flags: 'w'}));
+                        nextStream = passthrough;
+                    }
+
+                    transcode = ffmpeg(nextStream);
+                    transcode
+                        .noVideo()
+                        .audioCodec('libvorbis')
+                        .format('ogg')
+                        .on('error', () => {
+                        })
+                        .writeToStream(converter, {end: true});
+
+                    preloadTimer = setTimeout(() => {
+                        console.log("Preload Timer");
+                        preload();
+                    }, (totalSeconds - 15) * 1000);
+
+                    finishTimer = setTimeout(() => {
+                        console.log("Finish Timer");
+                        finished();
+                    }, (totalSeconds - 1) * 1000);
+                };
 
                 return {
                     source,
@@ -171,7 +216,7 @@ module.exports = (state) => {
                         console.log("Stopped");
                         setTimeout(() => {
                             try {
-                                transcode && transcode.kill()
+                                transcode.kill()
                             } catch (e) {
                             }
                         }, 1);
@@ -179,34 +224,7 @@ module.exports = (state) => {
                         preloadTimer && clearTimeout(preloadTimer);
                         finishTimer && clearTimeout(finishTimer);
                     },
-                    play: () => {
-                        let nextStream;
-                        if (cache) {
-                            console.log("Fully cached", source.title);
-                            nextStream = cachePath;
-                        } else {
-                            console.log("Starting cached", source.title);
-                            video.pipe(fs.createWriteStream(cachePath, {flags: 'w'}));
-                            nextStream = video;
-                        }
-
-                        transcode = ffmpeg(nextStream);
-                        transcode
-                            .noVideo()
-                            .audioCodec('libvorbis')
-                            .format('ogg')
-                            .on('error', () => {
-                            })
-                            .writeToStream(converter, {end: true});
-
-                        preloadTimer = setTimeout(() => {
-                            preload();
-                        }, (totalSeconds - 10) * 1000);
-                        // finishTimer = setTimeout(() => {
-                        //     console.log("Finish Timer");
-                        //     finished();
-                        // }, (totalSeconds) * 1000);
-                    }
+                    play,
                 }
         }
     }
@@ -308,7 +326,8 @@ module.exports = (state) => {
         // Reset votes
         nextSong.votes = 0;
 
-
+        let finishedCalled = false;
+        let stoppedCalled = false;
         const current = state.current = state.loading = stream(
             nextSong, // Source
             state.songsManager.playNextSong, // Preload
@@ -316,9 +335,13 @@ module.exports = (state) => {
                 // Started
                 console.log("XStarted", current.source.title);
                 if (last) {
-                    try {
-                        last.stop();
-                    } catch (e) {
+                    if (!stoppedCalled) {
+                        stoppedCalled = true;
+
+                        try {
+                            last.stop();
+                        } catch (e) {
+                        }
                     }
                 }
                 state.playing = current;
@@ -326,25 +349,31 @@ module.exports = (state) => {
             },
             () => {
                 // Finished
-                console.log("XFinished", current.source.title, state.current.source.title);
-                try {
-                    current.stop();
-                } catch (e) {
-                }
+                if (!finishedCalled) {
+                    finishedCalled = true;
+                    console.log("XFinished", current.source.title, state.current.source.title);
 
-                state.current.play();
+                    try {
+                        current.stop();
+                    } catch (e) {
+                    }
+
+                    state.current.play();
+                }
             },
             () => {
                 // Ready
                 console.log("XReady", state.current.source.title);
                 if (skip) {
-                    try {
-                        last.stop();
-                    } catch (e) {
+                    if (!stoppedCalled) {
+                        stoppedCalled = true;
+                        try {
+                            last.stop();
+                        } catch (e) {
+                        }
                     }
                     state.current.play();
-                }
-                if (!last) {
+                } else if (!last) {
                     state.current.play();
                 }
             });
