@@ -5,7 +5,7 @@ Requires=icecast2.service
 PartOf=icecast2.service
 
 [Service]
-ExecStart=/bin/bash -c "sleep 1; (cd $HOME/hexo/icecast/ices2 && /usr/bin/ices2 ices-playlist.xml)"
+ExecStart=/bin/bash -c "sleep 1; (cd $HOME/hexo/icecast/ices2 && /usr/bin/ices2 ices2.xml)"
 Restart=always
 RestartSec=5
 

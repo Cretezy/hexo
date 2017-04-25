@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "copy-defaults": "cp .env.sample .env && cp icecast/icecast2/icecast2-default.xml icecast/icecast2/icecast2.xml && cp icecast/ices2/ices2-default.xml icecast/ices2/ices2.xml",
     "build": "(cd web && yarn && yarn build)",
     "install": "(cd server && yarn) && yarn run install-systemd",
     "install-systemd": " mkdir -p ~/.config/systemd/user/ && cp -f server/hexo.service icecast/icecast2/icecast2.service icecast/ices2/ices2.service ~/.config/systemd/user/ && systemctl --user daemon-reload",
