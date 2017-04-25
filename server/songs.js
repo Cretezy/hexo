@@ -299,6 +299,11 @@ module.exports = (state) => {
     };
 
 
+
+    if (!fs.existsSync("cache")){
+        fs.mkdirSync("cache");
+    }
+    
     const addingToQueue = [];
     songs.forEach((song) => {
         song.by = "BOT";
