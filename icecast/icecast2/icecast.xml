@@ -20,7 +20,7 @@
     </authentication>
 
     <listen-socket>
-        <port>8001</port>
+        <port>8000</port>
     </listen-socket>
 
     <mount type="normal">
@@ -35,13 +35,13 @@
 
     <paths>
         <!-- basedir is only used if chroot is enabled -->
-        <!--<basedir>/usr/share/icecast2</basedir>-->
+        <basedir>.</basedir>
 
         <!-- Note that if <chroot> is turned on below, these paths must both
              be relative to the new root, not the original root -->
-        <logdir>/var/log/icecast2</logdir>
-        <webroot>/usr/share/icecast2/web</webroot>
-        <adminroot>/usr/share/icecast2/admin</adminroot>
+        <logdir>./logs</logdir>
+        <webroot>./web</webroot>
+        <adminroot>./admin</adminroot>
     </paths>
 
     <logging>
@@ -55,11 +55,9 @@
 
     <security>
         <chroot>0</chroot>
-        <!--
-        <changeowner>
-            <user>nobody</user>
-            <group>nogroup</group>
-        </changeowner>
-        -->
+        <!--<changeowner>-->
+            <!--<user>hexo</user>-->
+            <!--<group>hexo</group>-->
+        <!--</changeowner>-->
     </security>
 </icecast>

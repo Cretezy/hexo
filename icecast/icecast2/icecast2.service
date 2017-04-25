@@ -1,0 +1,10 @@
+[Unit]
+Description=Icecast2
+
+[Service]
+ExecStart=/bin/bash -c "(cd $HOME/hexo/icecast/icecast2 && /usr/bin/icecast2 -c icecast.xml)"
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

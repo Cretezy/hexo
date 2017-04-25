@@ -35,16 +35,16 @@ module.exports = (state) => {
         // });
 
         socket.on('skip', () => {
-            // state.current.stop();
-            state.songsManager.playNextSong(true);
+            state.playNextSong();
         });
 
         socket.on('addSong', (path) => {
             if (connection.name) {
-                state.songsManager.addToQueue({
-                    path, type: state.types.YOUTUBE,
-                    by: connection.name, title: ""
-                }, () => {
+                state.addToQueue({
+                    path,
+                    by: connection.name
+                }, false, () => {
+                    socket.emit('addedSong');
                 }, () => {
                     socket.emit('addedSong');
                 });
@@ -68,16 +68,13 @@ module.exports = (state) => {
         updateCurrent(io);
     });
     events.on("reload", () => {
-        reload(io);
+        reload();
     });
 
 
     function updateCurrent(client) {
-        if (state.current) {
-            client.emit('updateCurrent', {
-                currentlyPlaying: state.playing ? state.playing.source : state.current.source,
-                currentlyLoading: state.loading.source,
-            });
+        if (state.playing) {
+            client.emit('updateCurrent', state.playing.source);
         }
     }
 

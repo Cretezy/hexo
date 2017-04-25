@@ -11,10 +11,9 @@ class App extends Component {
 
         this.socket.on('updateCurrent', (data) => {
             this.setState({
-                currentlyPlaying: data.currentlyPlaying,
-                currentlyLoading: data.currentlyLoading,
+                currentlyPlaying: data
             });
-            document.title = "Hexo | " + data.currentlyPlaying.title;
+            document.title = "Hexo | " + data.title;
         });
         this.socket.on('updateQueue', (queue) => {
             this.setState({queue});
@@ -36,6 +35,10 @@ class App extends Component {
             if (!this.state.stopped) {
                 this.reloadAudio();
             }
+            this.socket.emit("setName", this.state.name);
+            this.setState({
+                songAdding: false
+            })
         });
 
         const name = localStorage.getItem("name") || "";
@@ -47,7 +50,6 @@ class App extends Component {
             volume: parseFloat(localStorage.getItem("volume")) || 0.75,
             queue: null,
             currentlyPlaying: null,
-            currentlyLoading: null,
             muted: false,
             stopped: true,
             songAdding: false,
@@ -95,6 +97,8 @@ class App extends Component {
         this.player.play();
         if (!this.player.paused) {
             this.setState({stopped: false});
+        }else{
+            this.player.load();
         }
     }
 
@@ -146,7 +150,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v4.0.0</h2>
+                    <h2>Welcome to Hexo v4.1.2</h2>
                 </div>
 
                 <audio
@@ -191,9 +195,7 @@ class App extends Component {
 
                 {this.state.currentlyPlaying &&
                 <h2>Currently playing: {this.state.currentlyPlaying.title}</h2>}
-                {this.state.currentlyPlaying && this.state.currentlyLoading &&
-                this.state.currentlyPlaying.uuid !== this.state.currentlyLoading.uuid &&
-                <h2>Currently loading: {this.state.currentlyLoading.title}</h2>}
+
 
                 {this.state.queue
                     ? <SongList songs={this.state.queue} onVote={this.onVote.bind(this)}/>
@@ -264,7 +266,9 @@ function Song({song, onVote}) {
                 </button>
             </td>
             <td>
-                <strong>{song.by}</strong> - <span style={!song.ready ? {color: "gray"} : {}}>{song.title}</span>
+                <strong>{song.by}</strong> - <span style={!song.ready ? {color: "gray"} : {}}>{song.title}
+                <span style={{fontSize: "small"}}> {song.duration}</span>
+                </span>
             </td>
         </tr>
     );

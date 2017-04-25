@@ -1,0 +1,11 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "(cd web && yarn build)",
+    "install": "(cd server && yarn) && cp -f server/hexo.service icecast/icecast2/icecast2.service icecast/ices2/ices2.service ~/.config/systemd/user/",
+    "enable":"systemctl --user enable hexo",
+    "start":"systemctl --user start hexo"
+  }
+}

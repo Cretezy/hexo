@@ -8,7 +8,6 @@
     "dotenv": "^4.0.0",
     "express": "^4.15.2",
     "fluent-ffmpeg": "^2.1.0",
-    "googleapis": "^19.0.0",
     "greenlock-express": "2.x",
     "http-proxy": "latest",
     "nodeshout": "^0.1.1",

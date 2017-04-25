@@ -1,0 +1,27 @@
+[2017-04-25  09:28:10] INFO main/main Icecast 2.4.2 server started
+[2017-04-25  09:28:10] INFO connection/get_ssl_certificate No SSL capability
+[2017-04-25  09:28:10] INFO yp/yp_update_thread YP update thread started
+[2017-04-25  09:28:10] WARN source/source_fallback_file unable to open file "./web/mii"
+[2017-04-25  09:30:36] INFO sighandler/_sig_die Caught signal 15, shutting down...
+[2017-04-25  09:30:36] INFO main/main Shutting down
+[2017-04-25  09:30:36] INFO fserve/fserve_shutdown file serving stopped
+[2017-04-25  09:30:36] INFO slave/_slave_thread shutting down current relays
+[2017-04-25  09:30:36] INFO slave/_slave_thread Slave thread shutdown complete
+[2017-04-25  09:30:36] INFO auth/auth_shutdown Auth shutdown
+[2017-04-25  09:30:36] INFO yp/yp_shutdown YP thread down
+[2017-04-25  09:30:37] INFO stats/stats_shutdown stats thread finished
+[2017-04-25  09:30:39] INFO main/main Icecast 2.4.2 server started
+[2017-04-25  09:30:39] INFO connection/get_ssl_certificate No SSL capability
+[2017-04-25  09:30:39] INFO yp/yp_update_thread YP update thread started
+[2017-04-25  09:30:39] WARN source/source_fallback_file unable to open file "./web/mii"
+[2017-04-25  09:30:53] INFO sighandler/_sig_die Caught signal 2, shutting down...
+[2017-04-25  09:30:53] INFO main/main Shutting down
+[2017-04-25  09:30:53] INFO fserve/fserve_shutdown file serving stopped
+[2017-04-25  09:30:54] INFO sighandler/_sig_die Caught signal 2, shutting down...
+[2017-04-25  09:30:54] INFO slave/_slave_thread shutting down current relays
+[2017-04-25  09:30:54] INFO slave/_slave_thread Slave thread shutdown complete
+[2017-04-25  09:30:54] INFO auth/auth_shutdown Auth shutdown
+[2017-04-25  09:30:54] INFO yp/yp_shutdown YP thread down
+[2017-04-25  09:30:54] INFO sighandler/_sig_die Caught signal 2, shutting down...
+[2017-04-25  09:30:54] INFO sighandler/_sig_die Caught signal 2, shutting down...
+[2017-04-25  09:30:54] INFO stats/stats_shutdown stats thread finished
