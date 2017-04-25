@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "apt": "sudo apt install ffmpeg icecast2 ices2 libshout3-dev",
-    "build": "(cd web && yarn build)",
+    "build": "(cd web && yarn && yarn build)",
     "install": "(cd server && yarn) && yarn run install-systemd",
     "install-systemd": " cp -f server/hexo.service icecast/icecast2/icecast2.service icecast/ices2/ices2.service ~/.config/systemd/user/ && systemctl --user daemon-reload",
     "enable": "systemctl --user enable hexo",
