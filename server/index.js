@@ -20,9 +20,10 @@ let server;
 
 // Only serve build in production
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
+    const proxy = httpProxy.createProxyServer({});
     app.get('/music', (req, res) => {
         proxy.web(req, res, {
-            target: 'http://127.0.0.1:8001/hexo',
+            target: `http://${process.env.ICECAST_HOST}:${process.env.ICECAST_PORT}/${process.env.ICECAST_MOUNT}`,
             ignorePath: true,
         });
     });
@@ -34,17 +35,14 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
     });
 }
 if (process.env.NODE_ENV === 'production') {
-    const proxy = httpProxy.createProxyServer({});
-
     server = greenlock.create({
         server: process.env.SSL_SERVER,
         email: process.env.SSL_EMAIL,
         agreeTos: true,
         approvedDomains: process.env.SSL_DOMAINS.split(","),
         app,
-        // debug: true
-    }).listen(80, 443);
-
+        debug: process.env.DEBUG
+    }).listen(process.env.PORT || 80, process.env.PORT_SSL || 443);
 } else {
     server = require('http').createServer(app);
 
