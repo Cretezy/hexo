@@ -2,6 +2,10 @@
 
 Install `node` (must be visible at `/usr/local/bin/node`)
 
+To make node be able to bind to port 80/443:
+```bash
+sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
+```
 Install deps:
 ```bash
 sudo apt install ffmpeg icecast2 ices2 libshout3-dev youtube-dl python

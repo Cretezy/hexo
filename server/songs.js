@@ -174,7 +174,7 @@ module.exports = (state) => {
                                 const video = youtubedl(url, [
                                     '-x',
                                     '--audio-format=vorbis',
-                                    '--proxy=96.239.193.243:8080',
+                                    // '--proxy=96.239.193.243:8080',
                                     // '--proxy=66.109.41.235:80',
                                     // '--proxy=201.16.140.205:80',
                                     '--format=' + format,
