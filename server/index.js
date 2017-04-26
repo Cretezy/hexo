@@ -19,8 +19,9 @@ const state = {
 let server;
 
 // Only serve build in production
+const proxy = httpProxy.createProxyServer({});
+
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
-    const proxy = httpProxy.createProxyServer({});
     app.get('/music', (req, res) => {
         proxy.web(req, res, {
             target: `http://${process.env.ICECAST_HOST}:${process.env.ICECAST_PORT}/${process.env.ICECAST_MOUNT}`,
