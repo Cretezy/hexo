@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "copy-defaults": "cp .env.sample .env && cp icecast/icecast2/icecast2-default.xml icecast/icecast2/icecast2.xml && cp icecast/ices2/ices2-default.xml icecast/ices2/ices2.xml",
+    "copy-defaults": "cp .env.sample .env && cp icecast/icecast2/icecast2-default.xml icecast/icecast2/icecast2.xml",
     "update": "yarn run setup-web && yarn run setup-server && yarn run setup-systemd",
     "setup-web": "(cd web && yarn && yarn build)",
     "setup-server": "(cd server && yarn)",
-    "setup-systemd": " mkdir -p ~/.config/systemd/user/ && cp -f server/hexo.service icecast/icecast2/icecast2.service icecast/ices2/ices2.service ~/.config/systemd/user/ && systemctl --user daemon-reload",
-    "enable": "systemctl --user enable hexo && systemctl --user enable icecast2 && systemctl --user enable ices2",
-    "disable": "systemctl --user disable hexo && systemctl --user disable icecast2 && systemctl --user disable ices2",
-    "start": "systemctl --user start icecast2 && systemctl --user start ices2 && systemctl --user start hexo",
-    "restart": "systemctl --user restart icecast2 && systemctl --user restart ices2 && systemctl --user restart hexo",
-    "stop": "systemctl --user stop icecast2 && systemctl --user stop ices2 && systemctl --user stop hexo"
+    "setup-systemd": " mkdir -p ~/.config/systemd/user/ && cp -f server/hexo.service icecast/icecast2/icecast2.service ~/.config/systemd/user/ && systemctl --user daemon-reload",
+    "enable": "systemctl --user enable hexo && systemctl --user enable icecast2",
+    "disable": "systemctl --user disable hexo && systemctl --user disable icecast2",
+    "start": "systemctl --user start icecast2 && systemctl --user start hexo",
+    "restart": "systemctl --user restart icecast2 && systemctl --user restart hexo",
+    "stop": "systemctl --user stop icecast2 && systemctl --user stop hexo"
   }
 }

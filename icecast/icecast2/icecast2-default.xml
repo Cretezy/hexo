@@ -23,14 +23,6 @@
         <port>8000</port>
     </listen-socket>
 
-    <mount type="normal">
-        <mount-name>/hexo</mount-name>
-        <type>application/ogg</type>
-        <fallback-mount>/mii</fallback-mount>
-        <fallback-override>1</fallback-override>
-        <fallback-when-full>1</fallback-when-full>
-    </mount>
-
     <fileserve>0</fileserve>
 
     <paths>

@@ -19,7 +19,7 @@ module.exports = (state) => {
     shout.setUser(process.env.ICECAST_USER);
     shout.setPassword(process.env.ICECAST_PASS);
     shout.setMount(process.env.ICECAST_MOUNT);
-    shout.setFormat(0); // 0=ogg, 1=mp3
+    shout.setFormat(1); // 0=ogg, 1=mp3
     shout.setAudioInfo('bitrate', '128');
     shout.setAudioInfo('samplerate', '44100');
     shout.setAudioInfo('channels', '2');
@@ -79,7 +79,7 @@ module.exports = (state) => {
                 } else {
                     // Not in cache, time to cache
                     song.uuid = uuid();
-                    const cachePath = path.resolve(cacheDir, song.uuid + ".ogg");
+                    const cachePath = path.resolve(cacheDir, song.uuid + ".mp3");
 
                     // Index in queue
                     let index = -1;
@@ -111,7 +111,7 @@ module.exports = (state) => {
                         }
                         const dlOptions = [
                             '-x',
-                            '--audio-format=vorbis',
+                            '--audio-format=mp3',
                             // '--proxy=96.239.193.243:8080',
                             // '--proxy=66.109.41.235:80',
                             // '--proxy=201.16.140.205:80',
@@ -161,12 +161,12 @@ module.exports = (state) => {
                                 })
                                 .on('error', cancel);
 
-                            // Transcode to ogg
+                            // Transcode to mp3
                             const transcode = ffmpeg(video);
                             transcode
                                 .noVideo()
-                                .audioCodec('libvorbis')
-                                .format('ogg')
+                                .audioCodec('libmp3lame')
+                                .format('mp3')
                                 .on('end', () => {
                                     // Done, let's add to cache
                                     readCache((cache) => {
@@ -235,7 +235,7 @@ module.exports = (state) => {
         nextSong.votes = 0;
 
         // Play
-        const stream = play(shout, `cache/${nextSong.uuid}.ogg`);
+        const stream = play(shout, `cache/${nextSong.uuid}.mp3`);
         stream.on("finish", state.playNextSong);
         stream.on("error", (error) => {
             stream.emit("stop");
