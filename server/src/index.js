@@ -15,7 +15,18 @@ const state = {
 };
 
 
+
+const proxy = httpProxy.createProxyServer({});
+
+app.get('/music', (req, res) => {
+    proxy.web(req, res, {
+        target: `http://${process.env.ICECAST_HOST}:${process.env.ICECAST_PORT}/${process.env.ICECAST_MOUNT}`,
+        ignorePath: true,
+    });
+});
+
 let server;
+
 
 // Only serve build in production/staging
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
@@ -40,14 +51,6 @@ if (process.env.USE_SSL === 'true') {
     server.listen(process.env.PORT || 9000);
 }
 
-const proxy = httpProxy.createProxyServer({});
-
-app.get('/music', (req, res) => {
-    proxy.web(req, res, {
-        target: `http://${process.env.ICECAST_HOST}:${process.env.ICECAST_PORT}/${process.env.ICECAST_MOUNT}`,
-        ignorePath: true,
-    });
-});
 
 state.io = require('socket.io')(server);
 require('./songs')(state);
