@@ -1,4 +1,3 @@
-icecast2/icecast2.xml
-ices2/ices2.xml
-icecast2/logs/*
-!icecast2/logs/.gitkeep
+icecast2.xml
+logs/*
+!logs/.gitkeep

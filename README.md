@@ -9,7 +9,7 @@ sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
 
 Install deps
 ```bash
-sudo apt install ffmpeg icecast2 ices2 libshout3-dev youtube-dl python
+sudo apt install ffmpeg icecast2 libshout3-dev youtube-dl python
 ```
 
 Create user:
@@ -28,7 +28,6 @@ yarn run update
 
 Edit config (change password, etc)
 * `icecast/icecast2/icecast2.xml`
-* `icecast/ices2/ices2.xml`
 * `.env`
 
 Enable (on boot) and run

@@ -2,7 +2,7 @@
 Description=Icecast2
 
 [Service]
-ExecStart=/bin/bash -c "(cd $HOME/hexo/icecast/icecast2 && /usr/bin/icecast2 -c icecast2.xml)"
+ExecStart=/bin/bash -c "(cd $HOME/hexo/icecast && /usr/bin/icecast2 -c icecast2.xml)"
 Restart=always
 RestartSec=5
 
