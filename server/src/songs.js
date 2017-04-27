@@ -5,6 +5,9 @@ const nodeshout = require("nodeshout");
 const uuid = require('uuid/v4');
 const play = require('./play');
 const async = require("async");
+const path = require("path");
+
+const cacheDir = path.resolve(__dirname, '..', 'cache');
 
 module.exports = (state) => {
     // Shout socket
@@ -76,7 +79,7 @@ module.exports = (state) => {
                 } else {
                     // Not in cache, time to cache
                     song.uuid = uuid();
-                    const cachePath = "cache/" + song.uuid + ".ogg";
+                    const cachePath = path.resolve(cacheDir, song.uuid + ".ogg");
 
                     // Index in queue
                     let index = -1;
@@ -251,8 +254,8 @@ module.exports = (state) => {
 
 
     // Make cache dir if doesn't exist
-    if (!fs.existsSync("cache")) {
-        fs.mkdirSync("cache");
+    if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir);
     }
 
     const cacheToQueue = [];
@@ -307,7 +310,7 @@ function getShoutErrorCode(code) {
     })
 }
 
-const cacheFilePath = 'cache/cache.json';
+const cacheFilePath = path.resolve(cacheDir, 'cache.json');
 function readCache(callback) {
     fs.exists(cacheFilePath, (exist) => {
         if (!exist) {
