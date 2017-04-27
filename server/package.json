@@ -16,8 +16,8 @@
     "youtube-dl": "^1.11.1"
   },
   "scripts": {
-    "start": "node index.js",
-    "dev": "concurrently -c green,yellow \"nodemon ./index.js\" \"cd ../web && npm run start\""
+    "start": "node src/index.js",
+    "dev": "concurrently -c green,yellow \"nodemon ./src/index.js\" \"cd ../web && npm run start\""
   },
   "devDependencies": {
     "concurrently": "^3.4.0",

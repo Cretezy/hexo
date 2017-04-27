@@ -7,7 +7,6 @@ const EventEmitter = require('events');
 const httpProxy = require('http-proxy');
 const greenlock = require('greenlock-express');
 
-
 const app = express();
 
 const state = {
@@ -18,24 +17,15 @@ const state = {
 
 let server;
 
-// Only serve build in production
-const proxy = httpProxy.createProxyServer({});
-
+// Only serve build in production/staging
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
-    app.get('/music', (req, res) => {
-        proxy.web(req, res, {
-            target: `http://${process.env.ICECAST_HOST}:${process.env.ICECAST_PORT}/${process.env.ICECAST_MOUNT}`,
-            ignorePath: true,
-        });
-    });
-
     app.use(express.static(path.resolve(__dirname, '..', 'web', 'build')));
 
     app.get('*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '..', 'web', 'build', 'index.html'));
     });
 }
-if (process.env.NODE_ENV === 'production') {
+if (process.env.USE_SSL === 'true') {
     server = greenlock.create({
         server: process.env.SSL_SERVER,
         email: process.env.SSL_EMAIL,
@@ -49,6 +39,15 @@ if (process.env.NODE_ENV === 'production') {
 
     server.listen(process.env.PORT || 9000);
 }
+
+const proxy = httpProxy.createProxyServer({});
+
+app.get('/music', (req, res) => {
+    proxy.web(req, res, {
+        target: `http://${process.env.ICECAST_HOST}:${process.env.ICECAST_PORT}/${process.env.ICECAST_MOUNT}`,
+        ignorePath: true,
+    });
+});
 
 state.io = require('socket.io')(server);
 require('./songs')(state);

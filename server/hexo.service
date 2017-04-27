@@ -5,7 +5,7 @@ Requires=icecast2.service
 PartOf=icecast2.service
 
 [Service]
-ExecStart=/bin/bash -c "sleep 1; cd $HOME/hexo/server && /usr/local/bin/node index.js"
+ExecStart=/bin/bash -c "sleep 1; cd $HOME/hexo/server && /usr/local/bin/node src/index.js"
 Restart=always
 RestartSec=5
 
