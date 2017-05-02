@@ -97,7 +97,7 @@ class App extends Component {
         this.player.play();
         if (!this.player.paused) {
             this.setState({stopped: false});
-        }else{
+        } else {
             this.player.load();
         }
     }
@@ -150,7 +150,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v4.3.4</h2>
+                    <h2>Welcome to Hexo v4.3.5</h2>
                 </div>
 
                 <audio
@@ -194,7 +194,16 @@ class App extends Component {
                 <br/>
 
                 {this.state.currentlyPlaying &&
-                <h2>Currently playing: {this.state.currentlyPlaying.title}</h2>}
+                <div>
+                    <h2>Currently playing: {this.state.currentlyPlaying.title}</h2>
+                    <a
+                        target="_blank"
+                        style={{fontSize:"small", textDecoration:"none"}}
+                        href={"https://www.google.ca/search?q=site%3Agenius.com+" +
+                        encodeURI(this.state.currentlyPlaying.title)}>
+                        Search lyrics
+                    </a>
+                </div>}
 
 
                 {this.state.queue
