@@ -28,6 +28,7 @@ module.exports = function (shout, filepath) {
         }
     });
 
+    console.log(filepath)
     const fileStream = fs.createReadStream(filepath);
     fileStream.pipe(shoutStream);
     fileStream.on('error', (error) => {
