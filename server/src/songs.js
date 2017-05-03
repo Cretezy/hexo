@@ -213,6 +213,17 @@ module.exports = (state) => {
         let nextSong = null;
         let totalVotes = 0;
 
+        state.queue.forEach((song) => {
+            const upVotes = state.connections.filter((connection) => connection.upVote === song.uuid).length;
+            const downVotes = state.connections.filter((connection) => connection.downVote === song.uuid).length;
+            song.votes += upVotes - downVotes;
+        });
+
+        state.connections.forEach((connection) => {
+            connection.upVote = null;
+            connection.downVote = null;
+        });
+
         const queueReady = state.queue.filter((song) => song.ready);
         queueReady.forEach((song) => {
             if (!nextSong) {

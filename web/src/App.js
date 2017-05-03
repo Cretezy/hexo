@@ -14,6 +14,9 @@ class App extends Component {
                 currentlyPlaying: data
             });
             document.title = "Hexo | " + data.title;
+            this.setState({
+                currentUpVote: null, currentDownVote: null,
+            })
         });
         this.socket.on('updateQueue', (queue) => {
             this.setState({queue});
@@ -59,6 +62,8 @@ class App extends Component {
             name,
             messages: [],
             users: [],
+            currentUpVote: null,
+            currentDownVote: null
         }
     }
 
@@ -127,8 +132,22 @@ class App extends Component {
         }
     }
 
-    onVote(uuid) {
-        this.socket.emit("vote", uuid)
+    onUpVote(uuid) {
+        this.socket.emit("upVote", uuid);
+        this.setState({currentUpVote: uuid});
+
+        if (this.state.currentDownVote === uuid) {
+            this.setState({currentDownVote: null});
+        }
+    }
+
+    onDownVote(uuid) {
+        this.socket.emit("downVote", uuid);
+        this.setState({currentDownVote: uuid});
+
+        if (this.state.currentUpVote === uuid) {
+            this.setState({currentUpVote: null});
+        }
     }
 
     setName(event) {
@@ -150,7 +169,7 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v4.3.5</h2>
+                    <h2>Welcome to Hexo v4.4.0</h2>
                 </div>
 
                 <audio
@@ -198,7 +217,7 @@ class App extends Component {
                     <h2>Currently playing: {this.state.currentlyPlaying.title}</h2>
                     <a
                         target="_blank"
-                        style={{fontSize:"small", textDecoration:"none"}}
+                        style={{fontSize: "small", textDecoration: "none"}}
                         href={"https://www.google.com/search?btnI&q=site%3Agenius.com+" +
                         encodeURI(this.state.currentlyPlaying.title)}>
                         Search lyrics
@@ -207,7 +226,12 @@ class App extends Component {
 
 
                 {this.state.queue
-                    ? <SongList songs={this.state.queue} onVote={this.onVote.bind(this)}/>
+                    ? <SongList songs={this.state.queue}
+                                onUpVote={this.onUpVote.bind(this)}
+                                onDownVote={this.onDownVote.bind(this)}
+                                currentUpVote={this.state.currentUpVote}
+                                currentDownVote={this.state.currentDownVote}
+                    />
                     : <div>Loading future songs...</div>}
                 {this.state.name !== "" &&
                 <form onSubmit={this.addSong.bind(this)}>
@@ -243,10 +267,12 @@ class App extends Component {
     }
 }
 
-function SongList({songs, onVote}) {
+function SongList({songs, onUpVote, onDownVote, currentUpVote, currentDownVote}) {
     // Sort by number of votes
     songs.sort(function (a, b) {
-        return (a.votes < b.votes) ? 1 : ((b.votes < a.votes) ? -1 : 0);
+        const aVotes = a.votes + a.upVotes - a.downVotes;
+        const bVotes = b.votes + b.upVotes - b.downVotes;
+        return (aVotes < bVotes) ? 1 : ((bVotes < aVotes) ? -1 : 0);
     });
 
     return (
@@ -255,24 +281,52 @@ function SongList({songs, onVote}) {
             <table className="song-list">
                 <tbody>
                 {songs.map(
-                    (song) => <Song key={song.uuid} song={song} onVote={onVote}/>
+                    (song) => <Song
+                        key={song.uuid}
+                        song={song}
+                        onUpVote={onUpVote} onDownVote={onDownVote}
+                        currentUpVote={currentUpVote} currentDownVote={currentDownVote}/>
                 )}
                 </tbody>
             </table>
         </div>
     );
 }
-function Song({song, onVote}) {
+function Song({song, onUpVote, onDownVote, currentUpVote, currentDownVote}) {
     return (
         <tr>
             <td>
-                <button className="vote" onClick={() => {
+                <button className={classNames({ vote:true,upVoted: currentUpVote === song.uuid})}onClick={() => {
                     if (song.ready) {
-                        onVote(song.uuid)
+                        onUpVote(song.uuid)
                     }
                 }}>
-                    Votes ({song.votes})
+                    &uarr;
                 </button>
+                <button className={classNames({vote:true, downVoted: currentDownVote === song.uuid})}onClick={() => {
+                    if (song.ready) {
+                        onDownVote(song.uuid)
+                    }
+                }}>
+                    &darr;
+                </button>
+
+                Votes (
+                <span className="votes">
+                    <span>
+                        {song.votes}
+                    </span>
+                    <span>
+                        +{song.upVotes}
+                    </span>
+                    <span>
+                        -{song.downVotes}
+                    </span>
+                     <span>
+                        = {song.votes + song.upVotes - song.downVotes}
+                    </span>
+                </span>
+                )
             </td>
             <td>
                 <strong>{song.by}</strong> - <span style={!song.ready ? {color: "gray"} : {}}>{song.title}

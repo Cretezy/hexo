@@ -3,8 +3,10 @@ const uuid = require('uuid/v4');
 module.exports = (state) => {
     const {io, events} = state;
     const connections = [];
+    state.connections = connections;
+
     io.on('connection', (socket) => {
-        const connection = {socket, name: "", uuid: uuid()};
+        const connection = {socket, name: "", uuid: uuid(), upVote: null, downVote:null};
         connections.push(connection);
         updateCurrent(socket);
         updateQueue(socket);
@@ -24,8 +26,19 @@ module.exports = (state) => {
             }
         });
 
-        socket.on('vote', (uuid) => {
-            state.queue.find((song) => song.uuid === uuid).votes++;
+        socket.on('upVote', (uuid) => {
+            connection.upVote = uuid;
+            if(connection.downVote === uuid){
+                connection.downVote = null;
+            }
+            events.emit("updateQueue");
+        });
+
+        socket.on('downVote', (uuid) => {
+            connection.downVote = uuid;
+            if(connection.upVote === uuid){
+                connection.upVote = null;
+            }
             events.emit("updateQueue");
         });
 
@@ -54,6 +67,7 @@ module.exports = (state) => {
         socket.on('disconnect', () => {
             connections.splice(connections.indexOf(connection), 1);
             updateOnline();
+            updateQueue(io)
         });
     });
 
@@ -64,9 +78,6 @@ module.exports = (state) => {
         updateCurrent(io);
     });
 
-    events.on("updateCurrent", () => {
-        updateCurrent(io);
-    });
     events.on("reload", () => {
         reload();
     });
@@ -79,7 +90,13 @@ module.exports = (state) => {
     }
 
     function updateQueue(client) {
-        client.emit('updateQueue', state.queue);
+        client.emit('updateQueue',
+            state.queue.map(song => Object.assign({}, song,
+                {
+                    upVotes: connections.filter((connection) => connection.upVote === song.uuid).length,
+                    downVotes: connections.filter((connection) => connection.downVote === song.uuid).length,
+                }
+            )));
     }
 
     function updateOnline() {

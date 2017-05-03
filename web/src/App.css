@@ -19,6 +19,18 @@
     margin: 20px;
 }
 
+.upVoted {
+    background-color: darkblue !important;
+}
+
+.downVoted {
+    background-color: darkred !important;
+}
+
+.votes > :not(:last-child) {
+    padding-right: 6px;
+}
+
 .button {
     border: none;
     color: white;
@@ -30,7 +42,7 @@
     border-radius: 12px;
     margin: 5px;
     transition: all 0.3s ease;
-    outline:0;
+    outline: 0;
 }
 
 .vote {
@@ -45,7 +57,7 @@
     border-radius: 15px;
     margin: 5px;
     transition: all 0.3s ease;
-    outline:0;
+    outline: 0;
 }
 
 .button:hover {
@@ -82,7 +94,7 @@
     background-color: #bb3a3a;
 }
 
-table.song-list{
+table.song-list {
     text-align: left;
     margin: 0 auto;
 }
