@@ -199,7 +199,7 @@ class App extends Component {
                     <a
                         target="_blank"
                         style={{fontSize:"small", textDecoration:"none"}}
-                        href={"https://www.google.ca/search?q=site%3Agenius.com+" +
+                        href={"https://www.google.com/search?btnI&q=site%3Agenius.com+" +
                         encodeURI(this.state.currentlyPlaying.title)}>
                         Search lyrics
                     </a>
