@@ -19,14 +19,15 @@ module.exports = (state) => {
     shout.setUser(process.env.ICECAST_USER);
     shout.setPassword(process.env.ICECAST_PASS);
     shout.setMount(process.env.ICECAST_MOUNT);
-    shout.setFormat(1); // 0=ogg, 1=mp3
+    shout.setFormat(1); // 0=ogg, 1=mp3 (ios doesn't support ogg)
     shout.setAudioInfo('bitrate', '128');
     shout.setAudioInfo('samplerate', '44100');
     shout.setAudioInfo('channels', '2');
 
     const code = shout.open();
     if (code !== nodeshout.ErrorTypes.SUCCESS) {
-        console.log("Could not connect to icecast", getShoutErrorCode(code))
+        console.log("Could not connect to icecast", getShoutErrorCode(code));
+        process.exit(1);
     }
 
     // Default songs

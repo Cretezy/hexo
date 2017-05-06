@@ -7,7 +7,7 @@
     "update": "yarn run setup-web && yarn run setup-server && yarn run setup-systemd",
     "setup-web": "(cd web && yarn && yarn build)",
     "setup-server": "(cd server && yarn && node node_modules/youtube-dl/scripts/download.js)",
-    "setup-systemd": " mkdir -p ~/.config/systemd/user/ && cp -f server/hexo.service icecast/icecast2/icecast2.service ~/.config/systemd/user/ && systemctl --user daemon-reload",
+    "setup-systemd": " mkdir -p ~/.config/systemd/user/ && cp -f server/hexo.service icecast/icecast2.service ~/.config/systemd/user/ && systemctl --user daemon-reload",
     "enable": "systemctl --user enable hexo && systemctl --user enable icecast2",
     "disable": "systemctl --user disable hexo && systemctl --user disable icecast2",
     "start": "systemctl --user start icecast2 && systemctl --user start hexo",
