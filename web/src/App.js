@@ -169,99 +169,110 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v4.4.0</h2>
+                    <h2>Welcome to Hexo v5.0.0</h2>
                 </div>
 
-                <audio
-                    ref={(player) => {
-                        this.player = player;
-                    }}
-                    src={ICECAST}/>
+                <div className="container">
+                    <div className="row">
+                        <div className="col-sm-12 col-lg-4">
+                            <audio
+                                ref={(player) => {
+                                    this.player = player;
+                                }}
+                                src={ICECAST}/>
 
-                <input className="volume" type="range"
-                       onChange={this.setVolume.bind(this)}
-                       value={this.state.volume}
-                       min="0" max="1" step="0.005"/>
+                            <input className="volume" type="range"
+                                   onChange={this.setVolume.bind(this)}
+                                   value={this.state.volume}
+                                   min="0" max="1" step="0.005"/>
 
-                <br/>
-                <br/>
+                            <br/>
+                            <br/>
+                            <div className="button-group">
+                                <button onClick={this.toggleStop.bind(this)}
+                                        className="primary">
+                                    {this.state.stopped ? "Start" : "Stop"} audio
+                                </button>
+                                <button onClick={this.skip.bind(this)}
+                                        className="secondary">
+                                    Skip song
+                                </button>
+                            </div>
+                            <div className="button-group">
+                                <button onClick={this.reloadAudio.bind(this)}
+                                        className="tertiary" disabled={this.state.stopped}>
+                                    Refresh audio
+                                </button>
+                                <button onClick={this.toggleMute.bind(this)}
+                                        className={classNames("", this.state.muted ? "secondary" : "primary")}>
+                                    Toggle mute ({this.state.muted ? "on" : "off"})
+                                </button>
+                            </div>
 
-                <div>
-                    <button onClick={this.toggleStop.bind(this)}
-                            className="button blue">
-                        {this.state.stopped ? "Start" : "Stop"} audio
-                    </button>
-                </div>
-                <div>
-                    <button onClick={this.reloadAudio.bind(this)}
-                            className="button green small" disabled={this.state.stopped}>
-                        Refresh audio
-                    </button>
-                    <button onClick={this.toggleMute.bind(this)}
-                            className={classNames("button small", this.state.muted ? "red" : "blue")}>
-                        Toggle mute ({this.state.muted ? "on" : "off"})
-                    </button>
-                </div>
-                <div>
-                    <button onClick={this.skip.bind(this)}
-                            className="button red">
-                        Skip song
-                    </button>
-                </div>
+                            {this.state.currentlyPlaying &&
+                            <div>
+                                <br/>
+                                <h3>Currently playing</h3>
+                                <h4>{this.state.currentlyPlaying.title}</h4>
+                                <br/>
+                                {this.state.currentlyPlaying.thumbnail &&
+                                <img alt={this.state.currentlyPlaying.title} src={this.state.currentlyPlaying.thumbnail}/>}
+                                <br/>
+                                <a
+                                    className="button small"
+                                    target="_blank"
+                                    style={{fontSize: "small", textDecoration: "none"}}
+                                    href={"https://www.google.com/search?btnI&q=site%3Agenius.com+" +
+                                    encodeURIComponent(this.state.currentlyPlaying.title).replace(/%20/g,'+')}>
+                                    Lyrics
+                                </a>
+                            </div>}
+                        </div>
 
-                <br/>
-                <br/>
-
-                {this.state.currentlyPlaying &&
-                <div>
-                    <h2>Currently playing: {this.state.currentlyPlaying.title}</h2>
-                    <a
-                        target="_blank"
-                        style={{fontSize: "small", textDecoration: "none"}}
-                        href={"https://www.google.com/search?btnI&q=site%3Agenius.com+" +
-                        encodeURI(this.state.currentlyPlaying.title)}>
-                        Search lyrics
-                    </a>
-                </div>}
-
-
-                {this.state.queue
-                    ? <SongList songs={this.state.queue}
-                                onUpVote={this.onUpVote.bind(this)}
-                                onDownVote={this.onDownVote.bind(this)}
-                                currentUpVote={this.state.currentUpVote}
-                                currentDownVote={this.state.currentDownVote}
-                    />
-                    : <div>Loading future songs...</div>}
-                {this.state.name !== "" &&
-                <form onSubmit={this.addSong.bind(this)}>
-                    <input
-                        disabled={this.state.songAdding}
-                        value={this.state.songInput}
-                        onChange={this.changeInput("songInput").bind(this)}/>
-                    <input type="submit" disabled={this.state.songAdding} value="Add song"/>
-                </form>
-                }
+                        <div className="col-lg-4">
+                            {this.state.queue
+                                ? <SongList songs={this.state.queue}
+                                            onUpVote={this.onUpVote.bind(this)}
+                                            onDownVote={this.onDownVote.bind(this)}
+                                            currentUpVote={this.state.currentUpVote}
+                                            currentDownVote={this.state.currentDownVote}
+                                />
+                                : <div>Loading future songs...</div>}
+                            {this.state.name !== "" &&
+                            <form onSubmit={this.addSong.bind(this)}>
+                                <input
+                                    disabled={this.state.songAdding}
+                                    value={this.state.songInput}
+                                    onChange={this.changeInput("songInput").bind(this)}/>
+                                <input type="submit" disabled={this.state.songAdding} value="Add song"/>
+                            </form>
+                            }
 
 
-                <OnlineUsers users={this.state.users}/>
+                        </div>
+                        <div className="col-lg-4">
+                            <OnlineUsers users={this.state.users}/>
 
-                <hr/>
-                {this.state.name !== "" ?
-                    <div>
-                        <form onSubmit={this.sendChat.bind(this)}>
-                            <input value={this.state.chatInput} onChange={this.changeInput("chatInput").bind(this)}/>
-                            <input type="submit" value="Send"/>
-                        </form>
+                            {this.state.name !== "" ?
+                                <div>
+                                    <form onSubmit={this.sendChat.bind(this)}>
+                                        <input value={this.state.chatInput}
+                                               onChange={this.changeInput("chatInput").bind(this)}/>
+                                        <input type="submit" value="Send"/>
+                                    </form>
+                                </div>
+                                :
+                                <form onSubmit={this.setName.bind(this)}>
+                                    <input value={this.state.nameInput}
+                                           onChange={this.changeInput("nameInput").bind(this)}/>
+                                    <input type="submit" value="Set name"/>
+                                </form>
+                            }
+
+                            <ChatList messages={this.state.messages}/>
+                        </div>
                     </div>
-                    :
-                    <form onSubmit={this.setName.bind(this)}>
-                        <input value={this.state.nameInput} onChange={this.changeInput("nameInput").bind(this)}/>
-                        <input type="submit" value="Set name"/>
-                    </form>
-                }
-
-                <ChatList messages={this.state.messages}/>
+                </div>
             </div>
         );
     }
@@ -278,32 +289,28 @@ function SongList({songs, onUpVote, onDownVote, currentUpVote, currentDownVote})
     return (
         <div>
             <h3>Queue</h3>
-            <table className="song-list">
-                <tbody>
-                {songs.map(
-                    (song) => <Song
-                        key={song.uuid}
-                        song={song}
-                        onUpVote={onUpVote} onDownVote={onDownVote}
-                        currentUpVote={currentUpVote} currentDownVote={currentDownVote}/>
-                )}
-                </tbody>
-            </table>
+            {songs.map(
+                (song) => <Song
+                    key={song.uuid}
+                    song={song}
+                    onUpVote={onUpVote} onDownVote={onDownVote}
+                    currentUpVote={currentUpVote} currentDownVote={currentDownVote}/>
+            )}
         </div>
     );
 }
 function Song({song, onUpVote, onDownVote, currentUpVote, currentDownVote}) {
     return (
-        <tr>
-            <td>
-                <button className={classNames({ vote:true,upVoted: currentUpVote === song.uuid})}onClick={() => {
+        <div className="row" style={{paddingBottom: '15px'}}>
+            <div className="col-md-2 col-sm-12">
+                <button className={classNames({vote: true, upVoted: currentUpVote === song.uuid})} onClick={() => {
                     if (song.ready) {
                         onUpVote(song.uuid)
                     }
                 }}>
                     &uarr;
                 </button>
-                <button className={classNames({vote:true, downVoted: currentDownVote === song.uuid})}onClick={() => {
+                <button className={classNames({vote: true, downVoted: currentDownVote === song.uuid})} onClick={() => {
                     if (song.ready) {
                         onDownVote(song.uuid)
                     }
@@ -311,7 +318,8 @@ function Song({song, onUpVote, onDownVote, currentUpVote, currentDownVote}) {
                     &darr;
                 </button>
 
-                Votes (
+                <br/>
+
                 <span className="votes">
                     <span>
                         {song.votes}
@@ -326,14 +334,17 @@ function Song({song, onUpVote, onDownVote, currentUpVote, currentDownVote}) {
                         = {song.votes + song.upVotes - song.downVotes}
                     </span>
                 </span>
-                )
-            </td>
-            <td>
-                <strong>{song.by}</strong> - <span style={!song.ready ? {color: "gray"} : {}}>{song.title}
-                <span style={{fontSize: "small"}}> {song.duration}</span>
+            </div>
+
+
+            <div className="col-md-10 col-sm-12">
+                <span>
+                    <strong>{song.by}</strong> - <span style={!song.ready ? {color: "gray"} : {}}>{song.title}
+                    <span style={{fontSize: "small"}}> {song.duration}</span>
                 </span>
-            </td>
-        </tr>
+                    </span>
+            </div>
+        </div>
     );
 }
 
@@ -365,7 +376,6 @@ function OnlineUsers({users}) {
     return (
         <div>
             {users.length > 0 && <div>
-                <hr/>
                 <h3>Online Users</h3></div>}
             {users.map(
                 (user) => <div key={user.uuid}>{user.name}</div>

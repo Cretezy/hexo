@@ -22,7 +22,6 @@ app.get('/music', (req, res) => {
     });
 });
 
-let server;
 
 
 // Only serve build in production/staging
@@ -34,10 +33,9 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
     });
 }
 
-server = require('http').createServer(app);
+const server = require('http').createServer(app);
 
 server.listen(process.env.PORT || 9000);
-
 
 state.io = require('socket.io')(server);
 require('./songs')(state);

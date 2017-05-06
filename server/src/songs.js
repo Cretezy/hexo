@@ -150,6 +150,7 @@ module.exports = (state) => {
 
                                     // Set song info
                                     song.title = info.title;
+                                    song.thumbnail = info.thumbnail;
                                     song.duration = time;
                                     song.durationInt = totalSeconds;
 
