@@ -5,7 +5,7 @@
   "scripts": {
     "copy-defaults": "cp .env.sample .env && cp icecast/icecast2/icecast2-default.xml icecast/icecast2/icecast2.xml",
     "update": "yarn run setup-web && yarn run setup-server && yarn run setup-systemd",
-    "setup-web": "(cd web && yarn && yarn build)",
+    "setup-web": "cd web && yarn && yarn run build",
     "setup-server": "(cd server && yarn && node node_modules/youtube-dl/scripts/download.js)",
     "setup-systemd": " mkdir -p ~/.config/systemd/user/ && cp -f server/hexo.service icecast/icecast2.service ~/.config/systemd/user/ && systemctl --user daemon-reload",
     "enable": "systemctl --user enable hexo && systemctl --user enable icecast2",

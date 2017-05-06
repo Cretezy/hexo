@@ -27,7 +27,7 @@ let server;
 
 // Only serve build in production/staging
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
-    app.use(express.static(path.resolve(__dirname, '..', '..', 'web', 'build')));
+    app.use(express.static(path.resolve(__dirname, '..', '..', 'web', 'build-prod')));
 
     app.get('*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '..', '..', 'web', 'build', 'index.html'));
