@@ -1,3 +1,4 @@
 icecast2.xml
 logs/*
 !logs/.gitkeep
+icecast.pid

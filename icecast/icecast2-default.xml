@@ -6,12 +6,20 @@
         <queue-size>524288</queue-size>
         <client-timeout>30</client-timeout>
         <header-timeout>15</header-timeout>
+
+        <!-- Leave source-timeout high, > 20s minimum -->
         <source-timeout>30</source-timeout>
-        <burst-size>0</burst-size>
+
+        <!--
+        Might want to change burst-size if having issues.
+        0 is recommend for lower latency.
+        -->
         <!--<burst-size>16384</burst-size>-->
+        <burst-size>0</burst-size>
     </limits>
 
     <authentication>
+        <!-- !!! CHANGE ALL PASSWORDS !!! -->
         <admin-user>admin</admin-user>
         <admin-password>hackme</admin-password>
 
@@ -26,14 +34,9 @@
     <fileserve>0</fileserve>
 
     <paths>
-        <!-- basedir is only used if chroot is enabled -->
         <basedir>.</basedir>
 
-        <!-- Note that if <chroot> is turned on below, these paths must both
-             be relative to the new root, not the original root -->
         <logdir>./logs</logdir>
-        <webroot>./web</webroot>
-        <adminroot>./admin</adminroot>
     </paths>
 
     <logging>
@@ -41,15 +44,14 @@
         <errorlog>error.log</errorlog>
         <loglevel>3</loglevel>
         <logsize>10000</logsize>
-        <!-- Rotational logs -->
+        <!--
+        You might want rotational logs. Uncomment the next line for them.
+        Careful as it might fill up your drive.
+        -->
         <!-- <logarchive>1</logarchive> -->
     </logging>
 
     <security>
         <chroot>0</chroot>
-        <!--<changeowner>-->
-            <!--<user>hexo</user>-->
-            <!--<group>hexo</group>-->
-        <!--</changeowner>-->
     </security>
 </icecast>

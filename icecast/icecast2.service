@@ -6,5 +6,6 @@ ExecStart=/bin/bash -c "(cd $HOME/hexo/icecast && /usr/bin/icecast2 -c icecast2.
 Restart=always
 RestartSec=5
 
+
 [Install]
 WantedBy=multi-user.target
