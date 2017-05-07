@@ -48,10 +48,15 @@
 }
 
 
-table.song-list {
+.message{
+    background-color: royalblue;
+    color:white;
     text-align: left;
-    margin: 0 auto;
+    padding: 8px 12px;
+    margin: 5px;
+    border-radius: 16px;
 }
+
 
 input[type=range] {
     -webkit-appearance: none;

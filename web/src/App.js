@@ -169,12 +169,12 @@ class App extends Component {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to Hexo v5.0.0</h2>
+                    <h2>Welcome to Hexo v5.1.0</h2>
                 </div>
 
                 <div className="container">
                     <div className="row">
-                        <div className="col-sm-12 col-lg-4">
+                        <div className="col-sm-12 col-md-6 col-lg-4">
                             <audio
                                 ref={(player) => {
                                     this.player = player;
@@ -216,60 +216,67 @@ class App extends Component {
                                 <h4>{this.state.currentlyPlaying.title}</h4>
                                 <br/>
                                 {this.state.currentlyPlaying.thumbnail &&
-                                <img alt={this.state.currentlyPlaying.title} src={this.state.currentlyPlaying.thumbnail}/>}
+                                <img alt={this.state.currentlyPlaying.title}
+                                     src={this.state.currentlyPlaying.thumbnail}/>}
                                 <br/>
                                 <a
                                     className="button small"
                                     target="_blank"
                                     style={{fontSize: "small", textDecoration: "none"}}
                                     href={"https://www.google.com/search?btnI&q=site%3Agenius.com+" +
-                                    encodeURIComponent(this.state.currentlyPlaying.title).replace(/%20/g,'+')}>
+                                    encodeURIComponent(this.state.currentlyPlaying.title).replace(/%20/g, '+')}>
                                     Lyrics
                                 </a>
                             </div>}
                         </div>
 
-                        <div className="col-lg-4">
-                            {this.state.queue
-                                ? <SongList songs={this.state.queue}
-                                            onUpVote={this.onUpVote.bind(this)}
-                                            onDownVote={this.onDownVote.bind(this)}
-                                            currentUpVote={this.state.currentUpVote}
-                                            currentDownVote={this.state.currentDownVote}
-                                />
-                                : <div>Loading future songs...</div>}
-                            {this.state.name !== "" &&
-                            <form onSubmit={this.addSong.bind(this)}>
-                                <input
-                                    disabled={this.state.songAdding}
-                                    value={this.state.songInput}
-                                    onChange={this.changeInput("songInput").bind(this)}/>
-                                <input type="submit" disabled={this.state.songAdding} value="Add song"/>
-                            </form>
-                            }
+                        <div className="col-sm-12 col-md-6 col-lg-8">
+                            <div className="container">
+                                <div className="row">
+                                    <div className="col-sm-12 col-md-12 col-lg-6">
+                                        {this.state.queue
+                                            ? <SongList songs={this.state.queue}
+                                                        onUpVote={this.onUpVote.bind(this)}
+                                                        onDownVote={this.onDownVote.bind(this)}
+                                                        currentUpVote={this.state.currentUpVote}
+                                                        currentDownVote={this.state.currentDownVote}
+                                            />
+                                            : <div>Loading future songs...</div>}
+                                        {this.state.name !== "" &&
+                                        <form onSubmit={this.addSong.bind(this)}>
+                                            <input
+                                                placeholder="YouTube or SoundCloud URL"
+                                                disabled={this.state.songAdding}
+                                                value={this.state.songInput}
+                                                onChange={this.changeInput("songInput").bind(this)}/>
+                                            <input type="submit" disabled={this.state.songAdding} value="Add song"/>
+                                        </form>
+                                        }
+                                    </div>
+                                    <div className="col-sm-12 col-md-12 col-lg-6">
+                                        <OnlineUsers users={this.state.users}/>
 
-
-                        </div>
-                        <div className="col-lg-4">
-                            <OnlineUsers users={this.state.users}/>
-
-                            {this.state.name !== "" ?
-                                <div>
-                                    <form onSubmit={this.sendChat.bind(this)}>
-                                        <input value={this.state.chatInput}
-                                               onChange={this.changeInput("chatInput").bind(this)}/>
-                                        <input type="submit" value="Send"/>
-                                    </form>
+                                        {this.state.name !== "" ?
+                                            <div>
+                                                <form onSubmit={this.sendChat.bind(this)}>
+                                                    <input
+                                                        value={this.state.chatInput}
+                                                        onChange={this.changeInput("chatInput").bind(this)}/>
+                                                    <input type="submit" value="Send"/>
+                                                </form>
+                                            </div>
+                                            :
+                                            <form onSubmit={this.setName.bind(this)}>
+                                                <input
+                                                    value={this.state.nameInput}
+                                                    onChange={this.changeInput("nameInput").bind(this)}/>
+                                                <input type="submit" value="Set name"/>
+                                            </form>
+                                        }
+                                        <ChatList messages={this.state.messages}/>
+                                    </div>
                                 </div>
-                                :
-                                <form onSubmit={this.setName.bind(this)}>
-                                    <input value={this.state.nameInput}
-                                           onChange={this.changeInput("nameInput").bind(this)}/>
-                                    <input type="submit" value="Set name"/>
-                                </form>
-                            }
-
-                            <ChatList messages={this.state.messages}/>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -302,7 +309,7 @@ function SongList({songs, onUpVote, onDownVote, currentUpVote, currentDownVote})
 function Song({song, onUpVote, onDownVote, currentUpVote, currentDownVote}) {
     return (
         <div className="row" style={{paddingBottom: '15px'}}>
-            <div className="col-md-2 col-sm-12">
+            <div className="col-sm-12 col-md-3 ">
                 <button className={classNames({vote: true, upVoted: currentUpVote === song.uuid})} onClick={() => {
                     if (song.ready) {
                         onUpVote(song.uuid)
@@ -337,7 +344,7 @@ function Song({song, onUpVote, onDownVote, currentUpVote, currentDownVote}) {
             </div>
 
 
-            <div className="col-md-10 col-sm-12">
+            <div className="col-sm-12 col-md-9">
                 <span>
                     <strong>{song.by}</strong> - <span style={!song.ready ? {color: "gray"} : {}}>{song.title}
                     <span style={{fontSize: "small"}}> {song.duration}</span>
@@ -366,7 +373,7 @@ function ChatList({messages}) {
 }
 function Message({message}) {
     return (
-        <div>
+        <div className="message">
             <strong>{message.name}</strong>: {message.text}
         </div>
     );
