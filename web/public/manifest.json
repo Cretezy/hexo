@@ -1,0 +1,15 @@
+{
+  "short_name": "Hexo",
+  "name": "Hexo",
+  "icons": [
+    {
+      "src": "music-note.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./",
+  "display": "standalone",
+  "theme_color": "#4169E1",
+  "background_color": "#ffffff"
+}
